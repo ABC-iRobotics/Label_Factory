@@ -1,4 +1,4 @@
-./gitignore
-./build/
-./install/
-./log/
+# Package build
+build/
+install/
+log/
