@@ -1,0 +1,24 @@
+camera_indexes:
+- 2
+- 8
+flange_camera_orientation:
+- - 0
+  - 0
+  - 180
+- - 0
+  - 0
+  - 180
+flange_camera_translation:
+- - 0
+  - 0.06
+  - 0
+- - 0.035
+  - 0.01
+  - 0.035
+moveit_configs:
+  base_link_name: base_link
+  end_effector_name: tool0
+  move_group_arm: ur_manipulator
+path_to_rendered_img: /home/arminkaroly/blender/renders/0001.png
+sensor_width_2: 4.233
+sensor_width_8: 4.233
