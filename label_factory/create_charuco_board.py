@@ -4,11 +4,11 @@ import cv2
 import yaml
 import subprocess
 
-def create_and_save_new_board(ARUCO_DICT,SQUARES_VERTICALLY,QUARES_HORIZONTALLY,SQUARE_LENGTH,MARKER_LENGTH,LENGTH_PX,MARGIN_PX,SAVE_NAME):
+def create_and_save_new_board(ARUCO_DICT,SQUARES_VERTICALLY,SQUARES_HORIZONTALLY,SQUARE_LENGTH,MARKER_LENGTH,LENGTH_PX,MARGIN_PX,SAVE_NAME):
     dictionary = cv2.aruco.getPredefinedDictionary(ARUCO_DICT)
     board = cv2.aruco.CharucoBoard((SQUARES_VERTICALLY, SQUARES_HORIZONTALLY), SQUARE_LENGTH, MARKER_LENGTH, dictionary)
     size_ratio = SQUARES_HORIZONTALLY / SQUARES_VERTICALLY
-    img = cv2.aruco.CharucoBoard.generateImage(board, (LENGTH_PX, int(LENGTH_PX*size_ratio)), marginSize=MARGIN_PX)
+    img = board.generateImage((LENGTH_PX, int(LENGTH_PX*size_ratio)), marginSize=10)
     cv2.imwrite(SAVE_NAME, img)
 
 
@@ -28,3 +28,6 @@ def main():
     SAVE_NAME = str(config['path_and_name_of_the_charuco_image'])       # path and name of the image
     # ------------------------------
     create_and_save_new_board(ARUCO_DICT,SQUARES_VERTICALLY,SQUARES_HORIZONTALLY,SQUARE_LENGTH,MARKER_LENGTH,LENGTH_PX,MARGIN_PX,SAVE_NAME)
+    
+if __name__ == '__main__':
+    main()

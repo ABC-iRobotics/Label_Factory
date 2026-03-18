@@ -19,9 +19,6 @@ def main():
         time.sleep(30)
         path_r = '/home/arminkaroly/Munka/Virt_Twin/src/Calibration/Results'
 
-
-
-
 if __name__ == '__main__':
     main()
     

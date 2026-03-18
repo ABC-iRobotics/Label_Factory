@@ -17,9 +17,9 @@ from scipy.spatial.transform import Rotation as R
 class FrameListener(Node):
     def __init__(self):
         super().__init__('ee_pose')
-        result = subprocess.check_output("ros2 pkg prefix data_generator",shell = True, text = True)
+        result = subprocess.check_output("ros2 pkg prefix label_factory",shell = True, text = True)
         result = result.split("/install",1)[0]
-        with open(os.path.join(result,'src/config.yaml'), 'r') as file:
+        with open(os.path.join(result,'label_factory/config.yaml'), 'r') as file:
             self.config = yaml.safe_load(file)
         # Declare and acquire `target_frame` parameter
         self.target_frame = self.declare_parameter('target_frame', self.config['moveit_configs']['base_link_name']).get_parameter_value().string_value

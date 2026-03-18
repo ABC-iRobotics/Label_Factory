@@ -187,7 +187,7 @@ object_pose_Screwdriver:
   - 0.10394473456359431
   - -0.5762721269858763
   - 1.7751032149644852
-path_and_name_of_the_charuco_image: /home/karol/Charuco.png
+path_and_name_of_the_charuco_image: /home/karolyarmin/Label_Factory/Label_Factory/Charuco.png
 path_to_rendered_img: /home/arminkaroly/blender/renders/0001.png
 sensor_width_2: 4.233
 sensor_width_8: 4.233

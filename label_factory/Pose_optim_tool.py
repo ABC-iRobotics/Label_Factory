@@ -2,81 +2,14 @@ import sys
 import numpy as np
 import cv2
 import yaml
-from vispy.util import logger
 from PyQt5 import QtCore, QtGui, QtWidgets
 from vispy import app, scene
 from colorama import Fore, Style
 from scipy.spatial.transform import Rotation as R
 from vispy.geometry import MeshData
 from scipy.spatial import ConvexHull
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from label_factory.utils import *
 
-def format_text(text, width, text_color="white", align="left"):
-    def strip_ansi(s):
-        result = ""
-        i = 0
-        while i < len(s):
-            if s[i] == "\033" and i + 1 < len(s) and s[i + 1] == "[":
-                i += 2
-                while i < len(s) and not s[i].isalpha():
-                    i += 1
-                i += 1
-            else:
-                result += s[i]
-                i += 1
-        return result
-    def visible_length(s):
-        return len(strip_ansi(s))
-    color_map = {
-        "black": Fore.BLACK, "red": Fore.RED, "green": Fore.GREEN, "yellow": Fore.YELLOW,
-        "blue": Fore.BLUE, "magenta": Fore.MAGENTA, "cyan": Fore.CYAN, "white": Fore.WHITE
-    }
-    color = color_map.get(text_color.lower(), Fore.WHITE)
-    final_lines = []
-    for line in text.split("\n"):
-        words = line.split()
-        current_line = ""
-        for word in words:
-            if visible_length(current_line) + visible_length(word) + (1 if current_line else 0) <= width:
-                current_line += (" " if current_line else "") + word
-            else:
-                final_lines.append(current_line)
-                current_line = word
-        if current_line:
-            final_lines.append(current_line)
-    formatted_output = []
-    for line in final_lines:
-        clean_len = visible_length(line)
-        padding = max(width - clean_len, 0)
-        if align == "center":
-            left = padding // 2
-            right = padding - left
-            formatted = f"{Fore.WHITE}*** {' ' * left}{color}{line}{' ' * right} {Fore.WHITE}***{Style.RESET_ALL}"
-        elif align == "right":
-            formatted = f"{Fore.WHITE}*** {' ' * padding}{color}{line} {Fore.WHITE}***{Style.RESET_ALL}"
-        elif align == "separated":
-            if ":" in line:
-                key, value = line.split(":", 1)
-                key_part = key.strip() + ":"
-                value_part = value.strip()
-                spacing = width - visible_length(key_part) - visible_length(value_part)
-                spacing = max(spacing, 1)
-                formatted = f"{Fore.WHITE}*** {color}{key_part}{' ' * spacing}{value_part} {Fore.WHITE}***{Style.RESET_ALL}"
-            else:
-                # fallback to left-align if no colon is found
-                right = max(width - visible_length(line), 0)
-                formatted = f"{Fore.WHITE}*** {color}{line}{' ' * right} {Fore.WHITE}***{Style.RESET_ALL}"
-        else:  # default to left
-            formatted = f"{Fore.WHITE}*** {color}{line}{' ' * padding} {Fore.WHITE}***{Style.RESET_ALL}"
-        formatted_output.append(formatted)
-    return "\n".join(formatted_output)
-
-def closed_text(text,Width,color,align):
-    Line_b =  "*" * (Width + 8) + "\n"
-    Line_a =  "\n" + "*" * (Width + 8) 
-    return '\n' + Fore.WHITE +  Line_b  + format_text(text,Width,color,align)  + Fore.WHITE +  Line_a
-   
 class Feature_point_data():
     def __init__(self):
         self.datas = []
@@ -546,7 +479,7 @@ class QtPoseTool(QtWidgets.QWidget):
         print(object_ori)
         
         self.config['object_pose_' + self.object_name].update({'location': object_pos, 'rotation': object_ori})
-        with open(self.path + '/src/config.yaml', 'w') as yamlfile:
+        with open(self.path + '/label_factory/config.yaml', 'w') as yamlfile:
             yaml.safe_dump(self.config, yamlfile, default_flow_style=False)
 
         rays_in_cam_coords_all = np.array(rays_in_cam_coords_all)

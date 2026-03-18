@@ -8,99 +8,12 @@ import subprocess
 import numpy as np
 from scipy import optimize
 from threading import Thread
-from colorama import Fore, Style
-from data_generator.moveit2 import MoveIt2
-from scipy.spatial.transform import Rotation as R
-from data_generator.generate_poses import PoseGenerator
-from data_generator.ee_pose_subs import EE_Pose_Subscriber
-from data_generator.joint_state_subs import Joint_state_Subscriber
 
-def format_text(text, width, text_color="white", align="left"):
-    def strip_ansi(s):
-        result = ""
-        i = 0
-        while i < len(s):
-            if s[i] == "\033" and i + 1 < len(s) and s[i + 1] == "[":
-                i += 2
-                while i < len(s) and not s[i].isalpha():
-                    i += 1
-                i += 1
-            else:
-                result += s[i]
-                i += 1
-        return result
-    def visible_length(s):
-        return len(strip_ansi(s))
-    color_map = {
-        "black": Fore.BLACK, "red": Fore.RED, "green": Fore.GREEN, "yellow": Fore.YELLOW,
-        "blue": Fore.BLUE, "magenta": Fore.MAGENTA, "cyan": Fore.CYAN, "white": Fore.WHITE
-    }
-    color = color_map.get(text_color.lower(), Fore.WHITE)
-    final_lines = []
-    for line in text.split("\n"):
-        words = line.split()
-        current_line = ""
-        for word in words:
-            if visible_length(current_line) + visible_length(word) + (1 if current_line else 0) <= width:
-                current_line += (" " if current_line else "") + word
-            else:
-                final_lines.append(current_line)
-                current_line = word
-        if current_line:
-            final_lines.append(current_line)
-    formatted_output = []
-    for line in final_lines:
-        clean_len = visible_length(line)
-        padding = max(width - clean_len, 0)
-        if align == "center":
-            left = padding // 2
-            right = padding - left
-            formatted = f"{Fore.WHITE}*** {' ' * left}{color}{line}{' ' * right} {Fore.WHITE}***{Style.RESET_ALL}"
-        elif align == "right":
-            formatted = f"{Fore.WHITE}*** {' ' * padding}{color}{line} {Fore.WHITE}***{Style.RESET_ALL}"
-        elif align == "separated":
-            if ":" in line:
-                key, value = line.split(":", 1)
-                key_part = key.strip() + ":"
-                value_part = value.strip()
-                spacing = width - visible_length(key_part) - visible_length(value_part)
-                spacing = max(spacing, 1)
-                formatted = f"{Fore.WHITE}*** {color}{key_part}{' ' * spacing}{value_part} {Fore.WHITE}***{Style.RESET_ALL}"
-            else:
-                # fallback to left-align if no colon is found
-                right = max(width - visible_length(line), 0)
-                formatted = f"{Fore.WHITE}*** {color}{line}{' ' * right} {Fore.WHITE}***{Style.RESET_ALL}"
-        else:  # default to left
-            formatted = f"{Fore.WHITE}*** {color}{line}{' ' * padding} {Fore.WHITE}***{Style.RESET_ALL}"
-        formatted_output.append(formatted)
-    return "\n".join(formatted_output)
-
-def closed_text(text,Width,color,align):
-    Line_b =  "*" * (Width + 8) + "\n"
-    Line_a =  "\n" + "*" * (Width + 8) 
-    return '\n' + Fore.WHITE +  Line_b  + format_text(text,Width,color,align)  + Fore.WHITE +  Line_a
-
-
-def averageQuaternions(Q):
-    import numpy.matlib as npm
-    # Number of quaternions to average
-    M = Q.shape[0]
-    A = npm.zeros(shape=(4,4))
-
-    for i in range(0,M):
-        q = Q[i,:]
-        # multiply q with its transposed version q' and add A
-        A = np.outer(q,q) + A
-
-    # scale
-    A = (1.0/M)*A
-    # compute eigenvalues and -vectors
-    eigenValues, eigenVectors = np.linalg.eig(A)
-    # Sort by largest eigenvalue
-    eigenVectors = eigenVectors[:,eigenValues.argsort()[::-1]]
-    # return the real part of the largest eigenvector (has only real part)
-    return np.real(eigenVectors[:,0].A1)
-
+from label_factory.utils import *
+from label_factory.moveit2 import MoveIt2
+from label_factory.ee_pose_subs import EE_Pose_Subscriber
+from label_factory.joint_state_subs import Joint_state_Subscriber
+from label_factory.exr_reader import OpenEXRReader
 
 class Image_taker():
     def __init__(self, print_ = False):
@@ -113,18 +26,18 @@ class Image_taker():
         self.Width = 72
         
         # Get config_file
-        self.path = subprocess.check_output("ros2 pkg prefix data_generator",shell = True, text = True)
+        self.path = subprocess.check_output("ros2 pkg prefix label_factory",shell = True, text = True)
         self.path = self.path.split("/install",1)[0]
-        with open(os.path.join(self.path,'src/config.yaml'), 'r') as file:
+        with open(os.path.join(self.path,'label_factory/config.yaml'), 'r') as file:
             self.config = yaml.safe_load(file)
         
         # Create folders if not exists
-        if not os.path.exists(self.path + '/src/Calibration'):
-            os.makedirs(self.path + '/src/Calibration')
-        if not os.path.exists(self.path + '/src/Calibration/Calibration_Images'):
-            os.makedirs(self.path + '/src/Calibration/Calibration_Images')
-        if not os.path.exists(self.path + '/src/Calibration/Real_Images'):
-            os.makedirs(self.path + '/src/Calibration/Real_Images')
+        if not os.path.exists(self.path + '/label_factory/Calibration'):
+            os.makedirs(self.path + '/label_factory/Calibration')
+        if not os.path.exists(self.path + '/label_factory/Calibration/Calibration_Images'):
+            os.makedirs(self.path + '/label_factory/Calibration/Calibration_Images')
+        if not os.path.exists(self.path + '/label_factory/Calibration/Real_Images'):
+            os.makedirs(self.path + '/label_factory/Calibration/Real_Images')
             
         rclpy.init()
         
@@ -181,10 +94,10 @@ class Image_taker():
                 curr_cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
                 curr_cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080) 
                 Cam_subs.append(curr_cam)
-                if not os.path.exists(self.path + '/src/Calibration/Calibration_Images' + "/camera_" + str(i)):
-                    os.makedirs(self.path + '/src/Calibration/Calibration_Images' + "/camera_" + str(i))
-                if not os.path.exists(self.path + '/src/Calibration/Real_Images' + "/camera_" + str(i)):
-                    os.makedirs(self.path + '/src/Calibration/Real_Images' + "/camera_" + str(i))
+                if not os.path.exists(self.path + '/label_factory/Calibration/Calibration_Images' + "/camera_" + str(i)):
+                    os.makedirs(self.path + '/label_factory/Calibration/Calibration_Images' + "/camera_" + str(i))
+                if not os.path.exists(self.path + '/label_factory/Calibration/Real_Images' + "/camera_" + str(i)):
+                    os.makedirs(self.path + '/label_factory/Calibration/Real_Images' + "/camera_" + str(i))
             else:
                 print(closed_text("Camera number " + str(i) +  " is not found!",self.Width,"red","left"))
                 return False
@@ -244,7 +157,7 @@ class Image_taker():
             q = R.from_euler('xyz', [calibration_photo_poses[i,3],calibration_photo_poses[i,4],calibration_photo_poses[i,5]],degrees=False).as_quat()
             calibration_photo_poses[i,3:] = q
         calibration_photo_poses = np.append(calibration_photo_poses,np.array([start_pose]),axis = 0)
-        np.savetxt(self.path + "/src/Calibration/calibration_photo_poses.csv", calibration_photo_poses , delimiter=",")
+        np.savetxt(self.path + "/label_factory/Calibration/calibration_photo_poses.csv", calibration_photo_poses , delimiter=",")
         
         # Logged End-Effector poses
         ee_poses = []
@@ -303,20 +216,20 @@ class Image_taker():
                     ret, image = Cam_subs[j].read()
                 if ret:
                     if calibration:
-                        cv2.imwrite(os.path.join(self.path + '/src/Calibration/Calibration_Images/camera_' + str(self.config['camera_indexes'][j]) + "/", str(i).zfill(4) + ".png"), image)
+                        cv2.imwrite(os.path.join(self.path + '/label_factory/Calibration/Calibration_Images/camera_' + str(self.config['camera_indexes'][j]) + "/", str(i).zfill(4) + ".png"), image)
                     else:
-                        cv2.imwrite(os.path.join(self.path + '/src/Calibration/Real_Images/camera_' + str(self.config['camera_indexes'][j]) + "/", str(i).zfill(4) + ".png"), image)
+                        cv2.imwrite(os.path.join(self.path + '/label_factory/Calibration/Real_Images/camera_' + str(self.config['camera_indexes'][j]) + "/", str(i).zfill(4) + ".png"), image)
                 if self.print_:
                     print(closed_text("Image taken with camera: " + str(self.config['camera_indexes'][j]),self.Width,"white","left"))
         # Save the photo positions
-        np.savetxt(self.path + "/src/Calibration/robot_poses.csv", ee_poses , delimiter=",")
-        self.photo_poses = np.genfromtxt(self.path + "/src/Calibration/robot_poses.csv", delimiter=',')
+        np.savetxt(self.path + "/label_factory/Calibration/robot_poses.csv", ee_poses , delimiter=",")
+        self.photo_poses = np.genfromtxt(self.path + "/label_factory/Calibration/robot_poses.csv", delimiter=',')
         
         return True
         
     def Calibrate_cameras(self):
         if self.photo_poses is None:
-            self.photo_poses = np.genfromtxt(self.path + "/src/Calibration/robot_poses.csv", delimiter=',')
+            self.photo_poses = np.genfromtxt(self.path + "/label_factory/Calibration/robot_poses.csv", delimiter=',')
         # Define the ChArUco board and the detector for that 
         board = cv2.aruco.CharucoBoard((37,25), 0.03, 0.023, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000))	
         detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000),  cv2.aruco.DetectorParameters())
@@ -325,7 +238,7 @@ class Image_taker():
         new_yaml_data_dict = {'cameras': {}}
         if not "cameras" in self.config:
             self.config.update(new_yaml_data_dict)
-            with open(self.path + '/src/config.yaml','w') as yamlfile:
+            with open(self.path + '/label_factory/config.yaml','w') as yamlfile:
                 yaml.safe_dump(self.config, yamlfile, default_flow_style = False)
         
         # Calibrate the cameras using the ChArUco board 
@@ -334,7 +247,7 @@ class Image_taker():
             allIds = []
             criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.00001)
             for i in range(self.photo_poses.shape[0]):
-                frame = cv2.imread(self.path + '/src/Calibration/Calibration_Images/camera_' + str(cam_index) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
+                frame = cv2.imread(self.path + '/label_factory/Calibration/Calibration_Images/camera_' + str(cam_index) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
                 gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
                 corners, ids, _ = detector.detectMarkers(gray)
                 if len(corners)>0:               
@@ -365,14 +278,14 @@ class Image_taker():
                 }
             }
             self.config['cameras'].update(new_yaml_data_dict)
-            with open(self.path + '/src/config.yaml','w') as yamlfile:
+            with open(self.path + '/label_factory/config.yaml','w') as yamlfile:
                 yaml.safe_dump(self.config, yamlfile, default_flow_style = False)
         
 
     def Validate_cam_calib(self):
         print("Start Validation")
         if self.photo_poses is None:
-            self.photo_poses = np.genfromtxt(self.path + "/src/Calibration/robot_poses.csv", delimiter=',')
+            self.photo_poses = np.genfromtxt(self.path + "/label_factory/Calibration/robot_poses.csv", delimiter=',')
         # Define the ChArUco board and the detector for that 
         board = cv2.aruco.CharucoBoard((37,25), 0.03, 0.023, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000))	
         detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000),  cv2.aruco.DetectorParameters())
@@ -386,7 +299,7 @@ class Image_taker():
             
             for i in range(self.photo_poses.shape[0]):
 
-                frame = cv2.imread(self.path + '/src/Calibration/Calibration_Images/camera_' + str(cam_index) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
+                frame = cv2.imread(self.path + '/label_factory/Calibration/Calibration_Images/camera_' + str(cam_index) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
                 gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
                 corners, ids, _ = detector.detectMarkers(gray)
                 if len(corners)>0:               
@@ -467,7 +380,7 @@ class Image_taker():
 
     def Calibrate_flange_Cam(self):
         if self.photo_poses is None:
-            self.photo_poses = np.genfromtxt(self.path + "/src/Calibration/robot_poses.csv", delimiter=',')
+            self.photo_poses = np.genfromtxt(self.path + "/label_factory/Calibration/robot_poses.csv", delimiter=',')
         # Define the ChArUco board and the detector for that 
         board = cv2.aruco.CharucoBoard((37,25), 0.03, 0.023, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000))	
         detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000),  cv2.aruco.DetectorParameters())
@@ -485,7 +398,7 @@ class Image_taker():
             camera_matrix = np.reshape(np.array(self.config['cameras']['camera_' + str(cam_index)]['CameraIntrinsic']),(3,3))
             distortion_coefficient = np.reshape(np.array(self.config['cameras']['camera_' + str(cam_index)]['DistCoeffs']),(-1,1)) 
             for i in range(self.photo_poses.shape[0]):
-                frame = cv2.imread(self.path + '/src/Calibration/Calibration_Images/camera_' + str(cam_index) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
+                frame = cv2.imread(self.path + '/label_factory/Calibration/Calibration_Images/camera_' + str(cam_index) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
                 gray = cv2.cvtColor(cv2.undistort(frame, camera_matrix, distortion_coefficient), cv2.COLOR_RGB2GRAY)
                 corners, ids, _ = detector.detectMarkers(gray)
                 for corner in corners:
@@ -624,7 +537,7 @@ class Image_taker():
             data_to_list = T_Flange_Cam[i,:,:].flatten().tolist() 
             new_yaml_data_dict = {'Tmatrix_Flange_Camera' : data_to_list}
             self.config['cameras']['camera_' + str(self.config['camera_indexes'][i])].update(new_yaml_data_dict)
-            with open(self.path + '/src/config.yaml','w') as yamlfile:
+            with open(self.path + '/label_factory/config.yaml','w') as yamlfile:
                 yaml.safe_dump(self.config, yamlfile, default_flow_style = False)
 
         return 0
@@ -838,7 +751,7 @@ class Image_taker():
                                         np.std(oris_errors_eul[:,:,2])]])
 
         saved = np.hstack((pos_errors_save,oris_errors_eul_save))
-        np.savetxt(self.path + "/src/Calibration/final_errors.csv", saved , delimiter=",")
+        np.savetxt(self.path + "/label_factory/Calibration/final_errors.csv", saved , delimiter=",")
 
 
         print(closed_text("Final average position error: " + str(np.average(mean_pos_errors)) + " [meter]",self.Width,"white","separated"))
@@ -857,13 +770,13 @@ class Image_taker():
             data_to_list = T_Flange_Cam[i,:,:].flatten().tolist() 
             new_yaml_data_dict = {'Tmatrix_Flange_Camera' : data_to_list}
             self.config['cameras']['camera_' + str(self.config['camera_indexes'][i])].update(new_yaml_data_dict)
-            with open(self.path + '/src/config.yaml','w') as yamlfile:
+            with open(self.path + '/label_factory/config.yaml','w') as yamlfile:
                 yaml.safe_dump(self.config, yamlfile, default_flow_style = False)
         
         
     def PoC_R2B(self):
         if self.photo_poses is None:
-            self.photo_poses = np.genfromtxt(self.path + "/src/Calibration/robot_poses.csv", delimiter=',')
+            self.photo_poses = np.genfromtxt(self.path + "/label_factory/Calibration/robot_poses.csv", delimiter=',')
         # Define the ChArUco board and the detector for that 
         board = cv2.aruco.CharucoBoard((37,25), 0.03, 0.023, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000))	
         detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000),  cv2.aruco.DetectorParameters())
@@ -880,7 +793,7 @@ class Image_taker():
             camera_matrix = np.reshape(np.array(self.config['cameras']['camera_' + str(cam_index)]['CameraIntrinsic']),(3,3))
             distortion_coefficient = np.reshape(np.array(self.config['cameras']['camera_' + str(cam_index)]['DistCoeffs']),(-1,1)) 
             for i in range(photo_poses.shape[0]):
-                frame = cv2.imread(self.path + '/src/Calibration/Real_Images/camera_' + str(cam_index) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
+                frame = cv2.imread(self.path + '/label_factory/Calibration/Real_Images/camera_' + str(cam_index) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
                 gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
                 corners, ids, _ = detector.detectMarkers(gray)
                 for corner in corners:
@@ -904,7 +817,7 @@ class Image_taker():
                 else:
                     print(i) 
 
-        np.savetxt('/home/arminkaroly/Munka/Virt_Twin/src/Calibration/Cam_poses.csv', Cam_to_board_poses[photo_poses.shape[0]:,:], delimiter=",")
+        np.savetxt('/home/arminkaroly/Munka/Virt_Twin/label_factory/Calibration/Cam_poses.csv', Cam_to_board_poses[photo_poses.shape[0]:,:], delimiter=",")
         import matplotlib.pyplot as plt
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
@@ -918,17 +831,17 @@ class Image_taker():
         plt.show()
 
 
-        if not os.path.exists(self.path + '/src/Calibration/Results'):
-            os.makedirs(self.path + '/src/Calibration/Results')
-        if not os.path.exists(self.path + '/src/Calibration/Results/Annotations_test_without_robot'):
-            os.makedirs(self.path + '/src/Calibration/Results/Annotations_test_without_robot')
+        if not os.path.exists(self.path + '/label_factory/Calibration/Results'):
+            os.makedirs(self.path + '/label_factory/Calibration/Results')
+        if not os.path.exists(self.path + '/label_factory/Calibration/Results/Annotations_test_without_robot'):
+            os.makedirs(self.path + '/label_factory/Calibration/Results/Annotations_test_without_robot')
 
         print("Start rendering")
 
         import requests
         import shutil
-        if not os.path.exists(self.path + '/src/Calibration/Results/Annotations_results'):
-            os.makedirs(self.path + '/src/Calibration/Results/Annotations_results')
+        if not os.path.exists(self.path + '/label_factory/Calibration/Results/Annotations_results'):
+            os.makedirs(self.path + '/label_factory/Calibration/Results/Annotations_results')
         Content_type = {'Content-Type': 'application/json',}
         render = {'render': {'annotation': True,},}
 
@@ -967,26 +880,26 @@ class Image_taker():
                 while True:
                     if os.path.exists(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr"):
                         time.sleep(0.5)
-                        shutil.copyfile(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr", self.path + '/src/Calibration/Results/Annotations_test_without_robot/' + str(cam_index*Cam_to_board.shape[1]+i).zfill(4) + '.exr')
-                        if os.path.exists(self.path + '/src/Calibration/Results/Annotations_test_without_robot/' + str(cam_index*Cam_to_board.shape[1]+i).zfill(4) + '.exr'):
+                        shutil.copyfile(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr", self.path + '/label_factory/Calibration/Results/Annotations_test_without_robot/' + str(cam_index*Cam_to_board.shape[1]+i).zfill(4) + '.exr')
+                        if os.path.exists(self.path + '/label_factory/Calibration/Results/Annotations_test_without_robot/' + str(cam_index*Cam_to_board.shape[1]+i).zfill(4) + '.exr'):
                             time.sleep(0.5)
                             os.remove(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr")
                             break
                     else:
                         time.sleep(0.1)
 
-                from data_generator.exr_reader import OpenEXRReader
+                
                 try:
                     chstr = 'i'
-                    with OpenEXRReader(self.path + '/src/Calibration/Results/Annotations_test_without_robot/' + str(cam_index*Cam_to_board.shape[1]+i).zfill(4) + '.exr', chstr) as exr:
+                    with OpenEXRReader(self.path + '/label_factory/Calibration/Results/Annotations_test_without_robot/' + str(cam_index*Cam_to_board.shape[1]+i).zfill(4) + '.exr', chstr) as exr:
                         mask = np.reshape(exr.i,(exr.resolution))
                         Annotation = self.Colorize_labels(mask)
                 except AttributeError:
                     print('Could not access channel(s) "{}", because they are not loaded!'.format(chstr))
-                real_img = cv2.imread(self.path + '/src/Calibration/Real_Images/camera_' + str(self.config['camera_indexes'][cam_index]) + '/' + str(i).zfill(4) + '.png')
+                real_img = cv2.imread(self.path + '/label_factory/Calibration/Real_Images/camera_' + str(self.config['camera_indexes'][cam_index]) + '/' + str(i).zfill(4) + '.png')
                 RESULTS = np.zeros(real_img.shape,dtype=real_img.dtype)
                 RESULTS[:,:,:] = (0.5 * real_img[:,:,:]) + ((0.5) * Annotation[:,:,:])
-                cv2.imwrite(self.path + '/src/Calibration/Results/Annotations_results/' + str(cam_index*Cam_to_board.shape[1]+i).zfill(4) + '.png', RESULTS)
+                cv2.imwrite(self.path + '/label_factory/Calibration/Results/Annotations_results/' + str(cam_index*Cam_to_board.shape[1]+i).zfill(4) + '.png', RESULTS)
                 print(cam_index*Cam_to_board.shape[1]+i)
         
     def Colorize_labels(self, mask, background = 0, bgr = True):
@@ -1032,8 +945,8 @@ class Image_taker():
     
     def Check_poses(self):
         import matplotlib.pyplot as plt     
-        self.photo_poses = np.genfromtxt(self.path + "/src/Calibration/robot_poses.csv", delimiter=',')
-        calc_poses = np.genfromtxt(self.path + "/src/Calibration/calibration_photo_poses.csv", delimiter=',')
+        self.photo_poses = np.genfromtxt(self.path + "/label_factory/Calibration/robot_poses.csv", delimiter=',')
+        calc_poses = np.genfromtxt(self.path + "/label_factory/Calibration/calibration_photo_poses.csv", delimiter=',')
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
         ax.scatter(calc_poses[:,0],calc_poses[:,1],calc_poses[:,2],c='b')

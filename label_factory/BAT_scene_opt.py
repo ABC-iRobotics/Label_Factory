@@ -8,87 +8,16 @@ import subprocess
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
 from colorama import Fore, Style
 from matplotlib.widgets import Button
 from matplotlib.backend_bases import MouseButton
 from scipy.spatial.transform import Rotation as R
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from data_generator.Pose_optim_tool import QtPoseTool
-
-from mpl_toolkits.mplot3d import Axes3D, proj3d
-from matplotlib.backend_bases import MouseButton
-
-
+from label_factory.Pose_optim_tool import QtPoseTool
+from label_factory.utils import *
 
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-def format_text(text, width, text_color="white", align="left"):
-    def strip_ansi(s):
-        result = ""
-        i = 0
-        while i < len(s):
-            if s[i] == "\033" and i + 1 < len(s) and s[i + 1] == "[":
-                i += 2
-                while i < len(s) and not s[i].isalpha():
-                    i += 1
-                i += 1
-            else:
-                result += s[i]
-                i += 1
-        return result
-    def visible_length(s):
-        return len(strip_ansi(s))
-    color_map = {
-        "black": Fore.BLACK, "red": Fore.RED, "green": Fore.GREEN, "yellow": Fore.YELLOW,
-        "blue": Fore.BLUE, "magenta": Fore.MAGENTA, "cyan": Fore.CYAN, "white": Fore.WHITE
-    }
-    color = color_map.get(text_color.lower(), Fore.WHITE)
-    final_lines = []
-    for line in text.split("\n"):
-        words = line.split()
-        current_line = ""
-        for word in words:
-            if visible_length(current_line) + visible_length(word) + (1 if current_line else 0) <= width:
-                current_line += (" " if current_line else "") + word
-            else:
-                final_lines.append(current_line)
-                current_line = word
-        if current_line:
-            final_lines.append(current_line)
-    formatted_output = []
-    for line in final_lines:
-        clean_len = visible_length(line)
-        padding = max(width - clean_len, 0)
-        if align == "center":
-            left = padding // 2
-            right = padding - left
-            formatted = f"{Fore.WHITE}*** {' ' * left}{color}{line}{' ' * right} {Fore.WHITE}***{Style.RESET_ALL}"
-        elif align == "right":
-            formatted = f"{Fore.WHITE}*** {' ' * padding}{color}{line} {Fore.WHITE}***{Style.RESET_ALL}"
-        elif align == "separated":
-            if ":" in line:
-                key, value = line.split(":", 1)
-                key_part = key.strip() + ":"
-                value_part = value.strip()
-                spacing = width - visible_length(key_part) - visible_length(value_part)
-                spacing = max(spacing, 1)
-                formatted = f"{Fore.WHITE}*** {color}{key_part}{' ' * spacing}{value_part} {Fore.WHITE}***{Style.RESET_ALL}"
-            else:
-                # fallback to left-align if no colon is found
-                right = max(width - visible_length(line), 0)
-                formatted = f"{Fore.WHITE}*** {color}{line}{' ' * right} {Fore.WHITE}***{Style.RESET_ALL}"
-        else:  # default to left
-            formatted = f"{Fore.WHITE}*** {color}{line}{' ' * padding} {Fore.WHITE}***{Style.RESET_ALL}"
-        formatted_output.append(formatted)
-    return "\n".join(formatted_output)
-
-def closed_text(text,Width,color,align):
-    Line_b =  "*" * (Width + 8) + "\n"
-    Line_a =  "\n" + "*" * (Width + 8) 
-    return '\n' + Fore.WHITE +  Line_b  + format_text(text,Width,color,align)  + Fore.WHITE +  Line_a
-    
 class Image_data():
     def __init__(self,image_index,image_blender,image_real,Px_coords,distance_from_cam,World_coords,Faces):
         self.image_index = image_index
@@ -102,23 +31,23 @@ class Image_data():
 class BAT_Optimizer():
     def __init__(self):
         self.Width = 72
-        self.path = subprocess.check_output("ros2 pkg prefix data_generator",shell = True, text = True)
+        self.path = subprocess.check_output("ros2 pkg prefix label_factory",shell = True, text = True)
         self.path = self.path.split("/install",1)[0]
         # Open config
-        with open(os.path.join(self.path,'src/config.yaml'), 'r') as file:
+        with open(os.path.join(self.path,'label_factory/config.yaml'), 'r') as file:
                 self.config = yaml.safe_load(file)
         # Set render image path
         self.render_path = self.config['path_to_rendered_img']        
-        if not os.path.exists(self.path + '/src/Calibration/Blender_Images'):
-            os.makedirs(self.path + '/src/Calibration/Blender_Images')
+        if not os.path.exists(self.path + '/label_factory/Calibration/Blender_Images'):
+            os.makedirs(self.path + '/label_factory/Calibration/Blender_Images')
         for i in self.config['camera_indexes']:
-            if not os.path.exists(self.path + '/src/Calibration/Blender_Images/camera_' + str(i)):
-                os.makedirs(self.path + '/src/Calibration/Blender_Images/camera_' + str(i))
+            if not os.path.exists(self.path + '/label_factory/Calibration/Blender_Images/camera_' + str(i)):
+                os.makedirs(self.path + '/label_factory/Calibration/Blender_Images/camera_' + str(i))
 
     def Define_cam_poses(self):
-        if os.path.isfile(self.path + "/src/Calibration/robot_poses.csv"):
+        if os.path.isfile(self.path + "/label_factory/Calibration/robot_poses.csv"):
             # Read robot poses
-            self.robot_poses = np.loadtxt(self.path + "/src/Calibration/robot_poses.csv", delimiter=",", dtype=float)
+            self.robot_poses = np.loadtxt(self.path + "/label_factory/Calibration/robot_poses.csv", delimiter=",", dtype=float)
         else:
             print(closed_text("The robot_poses.csv is not found!",self.Width,"red","left"))
             return False
@@ -189,7 +118,7 @@ class BAT_Optimizer():
                         self.config['object_pose_' + self.object_name] = {}
                     self.config['object_pose_' + self.object_name].update(update_pos)
                     self.config['object_pose_' + self.object_name].update(update_ori)
-                    with open(self.path + '/src/config.yaml','w') as yamlfile:
+                    with open(self.path + '/label_factory/config.yaml','w') as yamlfile:
                         yaml.safe_dump(self.config, yamlfile, default_flow_style = False)
                     print(closed_text("The object's pose is defined by the blender scene, the config file is updated!",self.Width,"yellow","left"))
         except:
@@ -237,7 +166,7 @@ class BAT_Optimizer():
                     if os.path.isfile(self.render_path):
                         time.sleep(0.3)
                         im_blender = cv2.imread(self.render_path)
-                        cv2.imwrite(self.path + '/src/Calibration/Blender_Images/camera_' + str(self.camera_index) + "/" + str(rand_imgs.index(i)).zfill(4) + ".png", im_blender)
+                        cv2.imwrite(self.path + '/label_factory/Calibration/Blender_Images/camera_' + str(self.camera_index) + "/" + str(rand_imgs.index(i)).zfill(4) + ".png", im_blender)
                         time.sleep(0.1)
                         os.remove(self.render_path) 
                         break
@@ -255,7 +184,7 @@ class BAT_Optimizer():
             Faces = np.array(resp['faces'])
             Px_coords = np.array(resp['px_coords'])
             Distances = np.array(resp['dist'])
-            im_real = cv2.imread(self.path + "/src/Calibration/Real_Images/camera_" + str(self.config['camera_indexes'][self.config['camera_indexes'].index(self.camera_index)]) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
+            im_real = cv2.imread(self.path + "/label_factory/Calibration/Real_Images/camera_" + str(self.config['camera_indexes'][self.config['camera_indexes'].index(self.camera_index)]) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
             current_image_data = Image_data(i, im_blender, im_real, Px_coords, Distances, World_coords, Faces)           
             self.All_image_datas.append(current_image_data)
 
@@ -322,10 +251,10 @@ class BAT_Optimizer():
         '''
         rand_imgs = [3,10,18,22,24,27,30,35,42,45]
 
-        if not os.path.exists(self.path + '/src/Calibration/Results/Annotations'):
-            os.makedirs(self.path + '/src/Calibration/Results/Annotations')
-        if not os.path.exists(self.path + '/src/Calibration/Results'):
-            os.makedirs(self.path + '/src/Calibration/Results')
+        if not os.path.exists(self.path + '/label_factory/Calibration/Results/Annotations'):
+            os.makedirs(self.path + '/label_factory/Calibration/Results/Annotations')
+        if not os.path.exists(self.path + '/label_factory/Calibration/Results'):
+            os.makedirs(self.path + '/label_factory/Calibration/Results')
         
         print(object_name)
 
@@ -345,7 +274,7 @@ class BAT_Optimizer():
                 if os.path.exists(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr"):
                     time.sleep(0.5)
                     shutil.copyfile(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr", self.path + '/src/Calibration/Results/Annotations/' + str(rand_imgs.index(i)).zfill(4) + '.exr')
-                    if os.path.exists(self.path + '/src/Calibration/Results/Annotations/' + str(rand_imgs.index(i)).zfill(4) + '.exr'):
+                    if os.path.exists(self.path + '/label_factory/Calibration/Results/Annotations/' + str(rand_imgs.index(i)).zfill(4) + '.exr'):
                         time.sleep(0.5)
                         os.remove(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr")
                         break
@@ -353,10 +282,10 @@ class BAT_Optimizer():
                     time.sleep(0.1)
 
         for i in range(len(rand_imgs)):
-            real_img = cv2.imread(self.path + '/src/Calibration/Real_Images/camera_' +  str(self.camera_index) + '/' + str(rand_imgs[i]).zfill(4) + '.png')
+            real_img = cv2.imread(self.path + '/label_factory/Calibration/Real_Images/camera_' +  str(self.camera_index) + '/' + str(rand_imgs[i]).zfill(4) + '.png')
             try:
                 chstr = 'i'
-                with OpenEXRReader(self.path + '/src/Calibration/Results/Annotations/' + str(i).zfill(4) + '.exr', chstr) as exr:
+                with OpenEXRReader(self.path + '/label_factory/Calibration/Results/Annotations/' + str(i).zfill(4) + '.exr', chstr) as exr:
                     mask = np.reshape(exr.i,(exr.resolution))
                     Annotation = self.Colorize_labels(mask)
             except AttributeError:
@@ -365,9 +294,9 @@ class BAT_Optimizer():
 
             RESULTS = np.zeros(real_img.shape,dtype=real_img.dtype)
             RESULTS[:,:,:] = (0.5 * real_img[:,:,:]) + ((0.5) * Annotation[:,:,:])
-            cv2.imwrite(self.path + '/src/Calibration/Results/' + str(i).zfill(4) + '.png', RESULTS)
+            cv2.imwrite(self.path + '/label_factory/Calibration/Results/' + str(i).zfill(4) + '.png', RESULTS)
 
-    #####################################################################################
+    '''#####################################################################################
     #################### Show Measurement System errors in Blender ######################
     #####################################################################################
     def MMS_B_T(self,image_number = -1, postion_mean_error = 0.003709910615278368, orientation_mean_error =  0.7301386995005932, position_std = 0.0047379104608484286, orientation_std = 0.6546477237618156):
@@ -552,7 +481,7 @@ class BAT_Optimizer():
             plt.savefig(self.path + '/src/Calibration/Results/Annotations_results/HIST_object'+ str(valami) +'.png')
             print(closed_text("Final average IOU for label " + str(valami+1) + ": " + str(np.average(all_ious[:,valami])),self.Width,"white","separated"))
             print(closed_text("The standard deviation of the IOU for label " + str(valami+1) + ": " + str(np.std(all_ious[:,valami])),self.Width,"white","separated"))
-        return True
+        return True'''
 
 
 
