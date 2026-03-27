@@ -101,7 +101,6 @@ class BAT_Optimizer():
         self.object_name = object_name
         try:
             answer =  requests.get('http://localhost:12345/object?name=' + str(object_name))
-            print(answer)
             if answer.json()['status'] == "failed":
                 print(closed_text("The object is found! Its name: " + str(object_name) + ".",self.Width,"red","left"))
                 return False
@@ -146,9 +145,7 @@ class BAT_Optimizer():
         if int(img_number) >= self.camera_poses.shape[1]:
             img_number = self.camera_poses.shape[1]
 
-
-        rand_imgs = range(0,self.camera_poses.shape[1],int(self.camera_poses.shape[1]/int(img_number)))
-
+        rand_imgs = range(1,self.camera_poses.shape[1],int(self.camera_poses.shape[1]/int(img_number)))
 
         self.camera_pose_mtx = self.camera_pose_matrix[self.config['camera_indexes'].index(self.camera_index),rand_imgs,:,:]
         for i in rand_imgs:
@@ -174,21 +171,22 @@ class BAT_Optimizer():
                         time.sleep(0.1)
                 except:
                     time.sleep(0.1)
-            resp =  requests.get('http://localhost:12345/mesh?name='+ Object_name).json()
+            resp =  requests.get('http://localhost:12345/vertices?name='+ Object_name+'?vertex_indices=all').json()
+            time.sleep(0.5)
             while True:
                 if resp['status'] == 'success':
                     break
                 else:
                     time.sleep(0.1)
-            World_coords = np.array(resp['vertices'])
+            World_coords = np.array(resp['3D_Coordinates'])
             Faces = np.array(resp['faces'])
-            Px_coords = np.array(resp['px_coords'])
-            Distances = np.array(resp['dist'])
+            Px_coords = np.array(resp['2D_Coordinates'])
+            Distances = np.array(resp['distance_from_cam'])
             im_real = cv2.imread(self.path + "/label_factory/Calibration/Real_Images/camera_" + str(self.config['camera_indexes'][self.config['camera_indexes'].index(self.camera_index)]) + "/" + str(i).zfill(4) + ".png", cv2.IMREAD_COLOR)
             current_image_data = Image_data(i, im_blender, im_real, Px_coords, Distances, World_coords, Faces)           
             self.All_image_datas.append(current_image_data)
 
-    def Create_window(self):
+    def Create_window(self):  
         app_qt = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
         w = QtPoseTool(self.All_image_datas, self.config, self.path, self.camera_pose_mtx, self.camera_index, self.object_name, self.Width)
         w.show()
@@ -236,7 +234,7 @@ class BAT_Optimizer():
         return out if bgr else out[..., ::-1]
 
     def Show_results(self,image_number = 15, object_name = 'object'):
-        from data_generator.exr_reader import OpenEXRReader
+        from label_factory.exr_reader import OpenEXRReader
         import shutil
 
         self.Define_cam_poses()
@@ -244,19 +242,18 @@ class BAT_Optimizer():
         Content_type = {'Content-Type': 'application/json',}
         render = {'render': {'annotation': True,},}
 
-        '''if int(image_number) == -1 or int(image_number)>=self.camera_poses.shape[1]:
+        if int(image_number) == -1 or int(image_number)>=self.camera_poses.shape[1]:
             rand_imgs = range(self.camera_poses.shape[1])
         else:
             rand_imgs = random.sample(range(self.camera_poses.shape[1]), int(image_number))
-        '''
-        rand_imgs = [3,10,18,22,24,27,30,35,42,45]
-
+        
         if not os.path.exists(self.path + '/label_factory/Calibration/Results/Annotations'):
             os.makedirs(self.path + '/label_factory/Calibration/Results/Annotations')
         if not os.path.exists(self.path + '/label_factory/Calibration/Results'):
             os.makedirs(self.path + '/label_factory/Calibration/Results')
         
         print(object_name)
+        print(self.path)
 
         self.Set_Object_pose(object_name)
         time.sleep(0.5)
@@ -273,7 +270,7 @@ class BAT_Optimizer():
             while True:
                 if os.path.exists(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr"):
                     time.sleep(0.5)
-                    shutil.copyfile(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr", self.path + '/src/Calibration/Results/Annotations/' + str(rand_imgs.index(i)).zfill(4) + '.exr')
+                    shutil.copyfile(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr", self.path + '/label_factory/Calibration/Results/Annotations/' + str(rand_imgs.index(i)).zfill(4) + '.exr')
                     if os.path.exists(self.path + '/label_factory/Calibration/Results/Annotations/' + str(rand_imgs.index(i)).zfill(4) + '.exr'):
                         time.sleep(0.5)
                         os.remove(self.render_path.rsplit("/",1)[0] + "/annotations/0001.exr")
@@ -286,7 +283,7 @@ class BAT_Optimizer():
             try:
                 chstr = 'i'
                 with OpenEXRReader(self.path + '/label_factory/Calibration/Results/Annotations/' + str(i).zfill(4) + '.exr', chstr) as exr:
-                    mask = np.reshape(exr.i,(exr.resolution))
+                    mask = np.reshape(exr.i,real_img.shape[:-1])
                     Annotation = self.Colorize_labels(mask)
             except AttributeError:
                 print('Could not access channel(s) "{}", because they are not loaded!'.format(chstr))

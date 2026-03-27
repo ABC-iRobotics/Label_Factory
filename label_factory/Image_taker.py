@@ -79,8 +79,8 @@ class Image_taker():
         self.node.create_rate(1.0).sleep()
         
         # Scale down velocity and acceleration of joints (percentage of maximum)
-        self.Moveit2_Robot.max_velocity = 0.5
-        self.Moveit2_Robot.max_acceleration = 0.5
+        self.Moveit2_Robot.max_velocity = 0.3
+        self.Moveit2_Robot.max_acceleration = 0.3
         # Set parameters for cartesian planning
         self.Moveit2_Robot.cartesian_avoid_collisions = False
         self.Moveit2_Robot.cartesian_jump_threshold = 0.0
@@ -253,7 +253,9 @@ class Image_taker():
                 if len(corners)>0:               
                     for corner in corners:
                         cv2.cornerSubPix(gray, corner, winSize = (3,3), zeroZone = (-1,-1), criteria = criteria) 
-                    res2 = 	cv2.aruco.interpolateCornersCharuco(corners, ids, gray, board)
+                        
+                    
+                    res2 = cv2.aruco.interpolateCornersCharuco(corners, ids, gray, board)
                     if res2[1] is not None and res2[2] is not None:
                         allCorners.append(res2[1])
                         allIds.append(res2[2])
@@ -453,9 +455,11 @@ class Image_taker():
                 Pos_error[i*Cam_to_board.shape[1]+j,:] = (T_Base_Flange[j,:,:] @ T_Flange_Cam[i,:,:] @ Cam_to_board [i,j,:,:] @ Fin_T)[0:3,3]
                 Ori_error[i*Cam_to_board.shape[1]+j,:] = R.from_matrix((T_Base_Flange[j,:,:] @ T_Flange_Cam[i,:,:] @ Cam_to_board [i,j,:,:] @ Fin_T)[0:3,0:3]).as_rotvec() 
         
-        cam_trans = np.array(self.config['flange_camera_translation'])
-        cam_ori_eul = np.array(self.config['flange_camera_orientation'])
-        parameters = np.append(cam_trans.flatten(),cam_ori_eul.flatten())
+        cam_trans = np.reshape(np.array(self.config['flange_camera_translation']),(-1,3))
+        cam_ori_eul = np.reshape(np.array(self.config['flange_camera_orientation']),(-1,3))
+        parameters = np.append(cam_trans,cam_ori_eul,axis=1)   
+        
+        print(parameters)
 
         parameters = optimize.fmin(func = self.Optimizer, x0 = parameters, args = (T_Base_Flange, Cam_to_board, Points_cam), ftol = 10e-10, xtol=10e-10, maxiter = 8000, disp = True)
         
@@ -464,8 +468,8 @@ class Image_taker():
         parameters = np.reshape(parameters,(len(self.config['flange_camera_orientation']),6))
         T_Flange_Cam = np.zeros((len(self.config['flange_camera_orientation']),4,4))
         for i in range(len(self.config['flange_camera_orientation'])):
-            T_Flange_Cam[i,0:3,0:3] = R.from_euler('xyz',parameters[1,i*3:(i+1)*3],degrees= True).as_matrix()
-            T_Flange_Cam[i,0:3,3] = np.array(parameters[0,i*3:(i+1)*3])
+            T_Flange_Cam[i,0:3,0:3] = R.from_euler('xyz',parameters[i,3:],degrees= True).as_matrix()
+            T_Flange_Cam[i,0:3,3] = np.array(parameters[i,0:3])
             T_Flange_Cam[i,3,3] = 1   
         
         # megnézi hogy ezzel hol vannak a kamera pózok
@@ -492,42 +496,6 @@ class Image_taker():
         
         print(np.mean(np.linalg.norm(Pos_error,axis=1)))
         print(np.mean(np.linalg.norm(Ori_error,axis=1)))
-        import matplotlib.pyplot as plt
-        plt.hist(Pos_error[:,0],bins = 50)
-        plt.title("Mean position errors")
-        plt.xlabel("Error [mm]")
-        plt.ylabel("Counts")
-        plt.show()
-
-        plt.hist(Pos_error[:,1],bins = 50)
-        plt.title("Mean position errors")
-        plt.xlabel("Error [meter]")
-        plt.ylabel("Counts")
-        plt.show()
-
-        plt.hist(Pos_error[:,2],bins = 50)
-        plt.title("Mean position errors")
-        plt.xlabel("Error [meter]")
-        plt.ylabel("Counts")
-        plt.show()
-
-        plt.hist(Ori_error[:,0],bins = 50)
-        plt.title("Mean orientation errors")
-        plt.xlabel("Error [deg]")
-        plt.ylabel("Counts")
-        plt.show()
-
-        plt.hist(Ori_error[:,1],bins = 50)
-        plt.title("Mean orientation errors")
-        plt.xlabel("Error [deg]")
-        plt.ylabel("Counts")
-        plt.show()
-
-        plt.hist(Ori_error[:,2],bins = 50)
-        plt.title("Mean orientation errors")
-        plt.xlabel("Error [deg]")
-        plt.ylabel("Counts")
-        plt.show()
 
         T_Flange_Cam[i,:,:].flatten().tolist() 
         # Update the config files with the optimized transfomations
@@ -543,12 +511,12 @@ class Image_taker():
         return 0
 
     def Optimizer(self,parameters,T_Base_Flange,Cam_to_board,Points_cam):
-        parameters = np.reshape(parameters,(len(self.config['flange_camera_orientation']),6))
-        #paraméterekből kiszámolja a Flange-camera trafót
+        parameters = np.reshape(parameters,(-1,6))
+        print(parameters)
         T_Flange_Cam = np.zeros((len(self.config['flange_camera_orientation']),4,4))
         for i in range(len(self.config['flange_camera_orientation'])):
-            T_Flange_Cam[i,0:3,0:3] = R.from_euler('xyz',parameters[1,i*3:(i+1)*3],degrees= True).as_matrix()
-            T_Flange_Cam[i,0:3,3] = np.array(parameters[0,i*3:(i+1)*3])
+            T_Flange_Cam[i,0:3,0:3] = R.from_euler('xyz',parameters[i,3:],degrees= True).as_matrix()
+            T_Flange_Cam[i,0:3,3] = np.array(parameters[i,0:3])
             T_Flange_Cam[i,3,3] = 1
         
         # megnézi hogy ezzel hol vannak a kamera pózok

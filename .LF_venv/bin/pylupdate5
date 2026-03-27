@@ -1,0 +1,6 @@
+#!/home/karolyarmin/Label_Factory/Label_Factory/.LF_venv/bin/python3
+import sys
+from PyQt5.pylupdate_main import main
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main())

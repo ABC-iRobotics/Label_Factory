@@ -11,7 +11,7 @@ class MyCLI(cmd.Cmd):
     prompt = '*** >>'
     def preloop(self):
         "Clear the cmd before running the loop"
-        #subprocess.run("clear")
+        subprocess.run("clear")
         self.Menu_id = 0
         self.Width = 72
         main_menu = closed_text("Main menu",self.Width,"green","center")
@@ -21,10 +21,10 @@ class MyCLI(cmd.Cmd):
         self.intro = main_menu + Description + Functions
         self.param1 = False
         self.param3 = [3,10,3,10,1,0.25,1,5,1,5,None,5]
-        self.param4 = 1
+        self.param4 = 0
         self.param5 = "Cube"
         self.param6 = "all"
-        self.param7 = 2
+        self.param7 = 10
         self.param8 = 15
         self.img_taker = Image_taker(self.param1)
         self.BAT_opt = BAT_Optimizer()
@@ -38,6 +38,10 @@ class MyCLI(cmd.Cmd):
     
     def default(self, line):
         print(Fore.RED +"The command " + line  + " is not found." + Fore.WHITE) 
+    
+    
+    def do_Charuco_check(self,line):
+        self.img_taker.Calibrate_cameras()
     
     def do_start_cam_calib(self, line):
         print(closed_text("The image taking process is started!",self.Width,"white","left"))
@@ -70,7 +74,7 @@ class MyCLI(cmd.Cmd):
                     self.BAT_opt.Render_images(self.param5, self.param7)
                     print(closed_text("The optimization window is opened!",self.Width,"white","left"))
                     self.BAT_opt.Create_window()
-                    
+    
     def do_results(self,line):
         print(closed_text("Creating the result images!",self.Width,"white","left"))
         output = self.BAT_opt.Setup_camera(self.param4)
