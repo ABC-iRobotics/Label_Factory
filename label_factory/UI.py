@@ -17,7 +17,7 @@ class MyCLI(cmd.Cmd):
         main_menu = closed_text("Main menu",self.Width,"green","center")
         Description = closed_text("This system was created to generate real camera images, with corresponding annotations, to teach neural networks for object detection.",self.Width,"yellow","left")
         Functions = closed_text(Fore.GREEN + "Commands:" + Fore.WHITE + "\nstart_cam_calib:" + Fore.WHITE +  " Start the camera calibration process.\nstart_cam_flange_calib:" + Fore.WHITE + " Start the Camera-Flange calibration process.\nstart_real_images:" + Fore.WHITE + " Start real image creating process.\nstart_optimization:" + Fore.WHITE + " Start the pose optimization precess.\nresults:" + Fore.WHITE + "Create some images, that shows the results.\nsetup_menu:" + Fore.WHITE + " Define the advanced parameters for the processes. \nhelp <command name>:" + Fore.WHITE + " Describe the command in a detailed form.\nclear:" + Fore.WHITE + " Clear the terminal.\nexit:" + Fore.WHITE + " Close the program.",self.Width,"cyan","separated")
-        print(closed_text("Welcome to BAT Digital Twin Real Part Operator.",self.Width,'yellow',"center"))
+        print(closed_text("Welcome to Label Factory Operator.",self.Width,'yellow',"center"))
         self.intro = main_menu + Description + Functions
         self.param1 = False
         self.param3 = [3,10,3,10,1,0.25,1,5,1,5,None,5]
