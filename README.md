@@ -169,10 +169,6 @@ Also under the setup menu the different parameters for the calibration can be ch
 ## Example results
 ![Example results](./figs/Example.png)
 
-
-
-
-
 ## License
 
 This software is released under the MIT License, see [LICENSE](./LICENSE).   
