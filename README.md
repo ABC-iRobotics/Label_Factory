@@ -167,12 +167,13 @@ Also under the setup menu the different parameters for the calibration can be ch
 - 9, Repeate steps 6-8
 
 ## Example results
-:-------------------------:|:-------------------------:|:-------------------------:
-![Example results](./figs/0000.png)  |   ![Example results](./figs/0001.png)    |   ![Example results](./figs/0002.png) 
-![Example results](./figs/0003.png)  |   ![Example results](./figs/0004.png)    |   ![Example results](./figs/0005.png)
-![Example results](./figs/0006.png)  |   ![Example results](./figs/0007.png)    |   ![Example results](./figs/0008.png)
-![Example results](./figs/0009.png)  |   ![Example results](./figs/0010.png)    |   ![Example results](./figs/0011.png) 
-![Example results](./figs/0012.png)  |   ![Example results](./figs/0013.png)    |   ![Example results](./figs/0014.png) 
+
+|![Example results](./figs/0000.png)  |   ![Example results](./figs/0001.png)    |   ![Example results](./figs/0002.png)|
+|----|----|----|
+|![Example results](./figs/0003.png)  |   ![Example results](./figs/0004.png)    |   ![Example results](./figs/0005.png)|
+|![Example results](./figs/0006.png)  |   ![Example results](./figs/0007.png)    |   ![Example results](./figs/0008.png)|
+|![Example results](./figs/0009.png)  |   ![Example results](./figs/0010.png)    |   ![Example results](./figs/0011.png)|
+|![Example results](./figs/0012.png)  |   ![Example results](./figs/0013.png)    |   ![Example results](./figs/0014.png)|
 
 ## License
 
@@ -182,4 +183,5 @@ This software is released under the MIT License, see [LICENSE](./LICENSE).
 This work is related to the MedLaBotX project (2024-1.2.3-HU-RIZONT-00069).
 Project 2024-1.2.3-HU-RIZONT-00069 has been implemented with support provided by the Ministry of Culture and Innovation of Hungary from the National Research, Development, and Innovation Fund, financed under the 2024-1.2.3-HU-RIZONT funding scheme.
 4-1.2.3-HU-RIZONT funding scheme.
+
 
