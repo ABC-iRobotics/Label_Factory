@@ -161,13 +161,18 @@ Also under the setup menu the different parameters for the calibration can be ch
         - Middle click: Skip a point (use if the feature point is hidden on the 2D image)
     - Press Next to get next calibration image
 
-![Video for the calibration](my_video.mov)
+![Video for the calibration](my_video.webm)
 
 - 8, Enter: results
 - 9, Repeate steps 6-8
 
 ## Example results
-![Example results](./figs/Example.png)
+:-------------------------:|:-------------------------:|:-------------------------:
+![Example results](./figs/0000.png)  |   ![Example results](./figs/0001.png)    |   ![Example results](./figs/0002.png) 
+![Example results](./figs/0003.png)  |   ![Example results](./figs/0004.png)    |   ![Example results](./figs/0005.png)
+![Example results](./figs/0006.png)  |   ![Example results](./figs/0007.png)    |   ![Example results](./figs/0008.png)
+![Example results](./figs/0009.png)  |   ![Example results](./figs/0010.png)    |   ![Example results](./figs/0011.png) 
+![Example results](./figs/0012.png)  |   ![Example results](./figs/0013.png)    |   ![Example results](./figs/0014.png) 
 
 ## License
 
