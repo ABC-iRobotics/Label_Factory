@@ -66,16 +66,17 @@ task-specific datasets that can be published to Hugging Face.
 ### How it works
 
 ```mermaid
-flowchart TD
-    A[RealSense RGB-D recording] --> B[Frame selection by overlap]
-    B --> C[COLMAP SfM and MVS reconstruction]
-    C --> D[RGB-D metric scale recovery]
-    B --> E[SAM-6D instance segmentation and pose estimation]
-    D --> F[Multi-frame pose consolidation: RANSAC, symmetries, verification]
+%%{init: {"theme": "neutral", "themeVariables": {"fontSize": "12px"}, "flowchart": {"nodeSpacing": 20, "rankSpacing": 25, "padding": 6}}}%%
+flowchart LR
+    A("RealSense<br/>RGB-D recording") --> B("Frame selection<br/>by overlap")
+    B --> C("COLMAP SfM<br/>+ MVS")
+    C --> D("Metric scale<br/>from depth")
+    B --> E("SAM-6D<br/>segmentation<br/>+ pose")
+    D --> F("Pose consolidation<br/>RANSAC, symmetries,<br/>verification")
     E --> F
-    F --> G[BlenderProc scene reconstruction]
-    G --> H[Per-frame annotations: masks, boxes, 6DoF poses, depth]
-    H --> I[Task-specific Parquet datasets on Hugging Face]
+    F --> G("BlenderProc<br/>scene")
+    G --> H("Per-frame<br/>annotations")
+    H --> I("Parquet datasets<br/>on Hugging Face")
 ```
 
 1. **Frame selection.** Two subsets of the recorded frames are selected by visual
