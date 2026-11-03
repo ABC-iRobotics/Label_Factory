@@ -63,10 +63,6 @@ footer{padding:24px 20px 48px;color:var(--muted);font-size:.88rem;border-top:1px
 video{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#000;display:block}
 .vid{margin:12px 0 18px}
 .vid .cap{color:var(--muted);font-size:.9rem;margin:6px 2px 0}
-.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:10px 0}
-.gallery figure{margin:0}
-.gallery img{width:100%;height:auto;border-radius:8px;border:1px solid var(--line);display:block}
-.gallery figcaption{color:var(--muted);font-size:.85rem;margin-top:3px}
 @media (max-width:700px){.stepper{grid-template-columns:1fr}}
 @media (max-width:560px){h1{font-size:1.8rem}}
 </style>
@@ -159,24 +155,15 @@ video{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);bac
 </section>
 
 <section id="gallery">
-  <h2>Consolidated poses on 5 + 5 scenes</h2>
-  <p>Final annotations rendered from the consolidated object poses, shown on five hand-tool scenes and five labware scenes at the same time. Every scene is a 250-frame recording; the colored masks and labels are the instances of the consolidated scene projected into each frame.</p>
+  <h2>Consolidated poses on 6 + 6 scenes</h2>
+  <p>Final annotations rendered from the consolidated object poses, shown on six hand-tool scenes and six labware scenes at the same time. Every scene is a 250-frame recording; the colored masks and labels are the instances of the consolidated scene projected into each frame.</p>
   <div class="vid">
-    <video controls muted loop playsinline preload="metadata" poster="media/hand_tools_poster.jpg"><source src="media/hand_tools_5_scenes.mp4" type="video/mp4"></video>
-    <div class="cap">Hand tools: five scenes in parallel.</div>
+    <video controls muted loop playsinline preload="metadata" poster="media/hand_tools_poster.jpg"><source src="media/hand_tools_6_scenes.mp4" type="video/mp4"></video>
+    <div class="cap">Hand tools: six scenes in parallel.</div>
   </div>
   <div class="vid">
-    <video controls muted loop playsinline preload="metadata" poster="media/labware_poster.jpg"><source src="media/labware_5_scenes.mp4" type="video/mp4"></video>
-    <div class="cap">Labware items: five scenes in parallel.</div>
-  </div>
-  <h3>Annotated frames</h3>
-  <div class="gallery">
-    <figure><img loading="lazy" src="media/still_hand_1.jpg" alt="Hand tools scene with consolidated poses"><figcaption>Hand tools</figcaption></figure>
-    <figure><img loading="lazy" src="media/still_hand_2.jpg" alt="Hand tools scene with consolidated poses"><figcaption>Hand tools</figcaption></figure>
-    <figure><img loading="lazy" src="media/still_hand_3.jpg" alt="Hand tools scene with consolidated poses"><figcaption>Hand tools</figcaption></figure>
-    <figure><img loading="lazy" src="media/still_lab_1.jpg" alt="Labware scene with consolidated poses"><figcaption>Labware items</figcaption></figure>
-    <figure><img loading="lazy" src="media/still_lab_2.jpg" alt="Labware scene with consolidated poses"><figcaption>Labware items</figcaption></figure>
-    <figure><img loading="lazy" src="media/still_lab_3.jpg" alt="Labware scene with consolidated poses"><figcaption>Labware items</figcaption></figure>
+    <video controls muted loop playsinline preload="metadata" poster="media/labware_poster.jpg"><source src="media/labware_6_scenes.mp4" type="video/mp4"></video>
+    <div class="cap">Labware items: six scenes in parallel.</div>
   </div>
 </section>
 
