@@ -3,7 +3,7 @@
 This guide describes the complete Label Factory workflow from the command line.
 The same stages are available in the Streamlit user interface. Installation is
 described in the [README](../README.md#installation); for the Docker-specific
-details see [`DOCKER.md`](../DOCKER.md).
+details see [`DOCKER.md`](DOCKER.md).
 
 **Contents**
 
@@ -66,7 +66,7 @@ streamlit run ui/app.py
 ```
 
 For an NVIDIA GPU and RealSense-enabled container deployment, see
-[`DOCKER.md`](../DOCKER.md). The Docker setup keeps datasets, camera calibrations,
+[`DOCKER.md`](DOCKER.md). The Docker setup keeps datasets, camera calibrations,
 SAM-6D checkpoints, and Hugging Face credentials outside the image.
 
 Then open `http://localhost:8501`. The sidebar selects the project YAML and the

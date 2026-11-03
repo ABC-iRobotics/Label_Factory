@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10-3776AB?logo=python&logoColor=white)](environment.yml)
 [![CUDA](https://img.shields.io/badge/CUDA-11.8-76B900?logo=nvidia&logoColor=white)](docker/Dockerfile)
-[![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)](DOCKER.md)
+[![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)](docs/DOCKER.md)
 [![Project page](https://img.shields.io/badge/project-page-orange)](https://abc-irobotics.github.io/Label_Factory/)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97-datasets-yellow)](https://huggingface.co/KarolyArmin)
 
@@ -223,11 +223,11 @@ docker compose run --rm label-factory /opt/conda/envs/sam6d/bin/python -c \
 ```
 
 Hardware profiles with tuned reconstruction settings are provided in
-[`pipeline.rtx2000.env`](pipeline.rtx2000.env) (8 GB laptop GPU) and
-[`pipeline.a100.env`](pipeline.a100.env) (server GPU). Troubleshooting,
+[`docker/pipeline.rtx2000.env`](docker/pipeline.rtx2000.env) (8 GB laptop GPU) and
+[`docker/pipeline.a100.env`](docker/pipeline.a100.env) (server GPU). Troubleshooting,
 RealSense access and Hugging Face credentials are described in
-[`DOCKER.md`](DOCKER.md); a Hungarian user guide is in
-[`USER_GUIDE.md`](USER_GUIDE.md).
+[`DOCKER.md`](docs/DOCKER.md); a Hungarian user guide is in
+[`USER_GUIDE.md`](docs/USER_GUIDE.md).
 
 ### Native installation
 
@@ -364,7 +364,7 @@ Optionally load a hardware profile with the reconstruction settings, and a
 Hugging Face write token if you publish datasets:
 
 ```bash
-set -a; source pipeline.rtx2000.env; set +a     # or pipeline.a100.env
+set -a; source docker/pipeline.rtx2000.env; set +a     # or docker/pipeline.a100.env
 export HF_TOKEN=hf_...                           # only when publishing
 ```
 
@@ -586,12 +586,13 @@ tables of the paper are stored in [`evaluation/ycbv/`](evaluation/ycbv) and
 ├── scripts/            pipeline stages, evaluation and utilities
 │   └── configs/        project configuration (default.yaml)
 ├── ui/                 Streamlit user interface
-├── docker/             Dockerfile, entrypoint, SAM-6D requirements
+├── docker/             Dockerfile, entrypoint, SAM-6D requirements, hardware profiles
 ├── external/SAM-6D/    SAM-6D source with the patches used by the pipeline
 ├── evaluation/         YCB-Video and runtime result tables
-├── docs/               project page, usage guide, user interface guide
+├── docs/               project page, user interface guide, usage and Docker guides
 ├── compose.yaml        Docker Compose service
-└── pipeline.*.env      hardware profiles
+├── environment.yml     conda environment of the reconstruction pipeline
+└── LICENSE             MIT license
 ```
 
 ## Citation

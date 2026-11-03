@@ -71,13 +71,13 @@ checkpoints/
 Az RTX 2000 Ada profil körülbelül 8 GiB VRAM-ra készült:
 
 ```text
-pipeline.rtx2000.env
+docker/pipeline.rtx2000.env
 ```
 
 Az A100 profil nagyobb párhuzamosságot és host cache-t használ:
 
 ```text
-pipeline.a100.env
+docker/pipeline.a100.env
 ```
 
 Mindig ugyanazt a profilt használd a build és a futtatás során. A PointNet2
@@ -88,20 +88,20 @@ CUDA-kiegészítő a build során az adott GPU architektúrájára fordul.
 ### RTX 2000 Ada
 
 ```bash
-docker compose --env-file pipeline.rtx2000.env build label-factory
+docker compose --env-file docker/pipeline.rtx2000.env build label-factory
 ```
 
 ### NVIDIA A100
 
 ```bash
-docker compose --env-file pipeline.a100.env build label-factory
+docker compose --env-file docker/pipeline.a100.env build label-factory
 ```
 
 Ha GPU-profilt, függőséget, Dockerfile-t vagy Python scriptet változtattál,
 biztos újraépítéshez használd:
 
 ```bash
-docker compose --env-file pipeline.rtx2000.env build --no-cache label-factory
+docker compose --env-file docker/pipeline.rtx2000.env build --no-cache label-factory
 ```
 
 Az első build hosszú lehet, mert két Conda környezetet, Blendert és a PointNet2
@@ -120,7 +120,7 @@ A `compose.yaml` a teljes `/dev/bus/usb` könyvtárat átadja a containernek. A
 RealSense kamera ellenőrzése a futó szolgáltatásban:
 
 ```bash
-docker compose --env-file pipeline.rtx2000.env run --rm \
+docker compose --env-file docker/pipeline.rtx2000.env run --rm \
   --entrypoint /opt/conda/envs/label-factory/bin/python \
   label-factory -c \
   "import pyrealsense2 as rs; print([d.get_info(rs.camera_info.name) for d in rs.context().devices])"
@@ -128,12 +128,12 @@ docker compose --env-file pipeline.rtx2000.env run --rm \
 
 Ezen a Docker/host konfiguráción a RealSense által használt USB ioctl műveletek
 a bind mount és a device cgroup rule mellett is blokkolva maradhatnak. Erre
-szolgál a külön `compose.capture.yaml` override. Csak helyi kalibrációhoz és
+szolgál a külön `docker/compose.capture.yaml` override. Csak helyi kalibrációhoz és
 RGB-D felvételhez indítsd vele a szolgáltatást:
 
 ```bash
-docker compose --env-file pipeline.rtx2000.env \
-  -f compose.yaml -f compose.capture.yaml up label-factory
+docker compose --env-file docker/pipeline.rtx2000.env \
+  -f compose.yaml -f docker/compose.capture.yaml up label-factory
 ```
 
 Ez az indítás `privileged` hozzáférést ad a containernek. Csak megbízható,
@@ -153,13 +153,13 @@ Ha a lista üres:
 ### RTX 2000 Ada
 
 ```bash
-docker compose --env-file pipeline.rtx2000.env up label-factory
+docker compose --env-file docker/pipeline.rtx2000.env up label-factory
 ```
 
 ### NVIDIA A100
 
 ```bash
-docker compose --env-file pipeline.a100.env up label-factory
+docker compose --env-file docker/pipeline.a100.env up label-factory
 ```
 
 A felület ugyanazon a gépen:
@@ -183,7 +183,7 @@ hostname -I
 Háttérben történő indítás és logkövetés:
 
 ```bash
-docker compose --env-file pipeline.rtx2000.env up -d label-factory
+docker compose --env-file docker/pipeline.rtx2000.env up -d label-factory
 docker compose logs -f --tail=150 label-factory
 ```
 
@@ -296,7 +296,7 @@ A publikálás pull requesten keresztül történik.
 Hugging Face token átadása indításkor:
 
 ```bash
-HF_TOKEN="hf_..." docker compose --env-file pipeline.rtx2000.env \
+HF_TOKEN="hf_..." docker compose --env-file docker/pipeline.rtx2000.env \
   up label-factory
 ```
 
@@ -329,8 +329,8 @@ xhost -local:docker
 
 ```bash
 git pull
-docker compose --env-file pipeline.rtx2000.env build label-factory
-docker compose --env-file pipeline.rtx2000.env up label-factory
+docker compose --env-file docker/pipeline.rtx2000.env build label-factory
+docker compose --env-file docker/pipeline.rtx2000.env up label-factory
 ```
 
 ## 10. Gyors ellenőrzések és hibakeresés
@@ -338,7 +338,7 @@ docker compose --env-file pipeline.rtx2000.env up label-factory
 ### A container nem látja a GPU-t
 
 ```bash
-docker compose --env-file pipeline.rtx2000.env run --rm label-factory \
+docker compose --env-file docker/pipeline.rtx2000.env run --rm label-factory \
   nvidia-smi
 ```
 
@@ -348,7 +348,7 @@ beállítva.
 ### A PyCOLMAP nem CUDA-képes
 
 ```bash
-docker compose --env-file pipeline.rtx2000.env run --rm label-factory \
+docker compose --env-file docker/pipeline.rtx2000.env run --rm label-factory \
   python -c "import pycolmap; print(pycolmap.__version__, pycolmap.has_cuda)"
 ```
 
@@ -357,14 +357,14 @@ A dense PatchMatch futtatásához `True` szükséges; nincs CPU fallback.
 ### A SAM-6D nem látja a GPU-t
 
 ```bash
-docker compose --env-file pipeline.rtx2000.env run --rm label-factory \
+docker compose --env-file docker/pipeline.rtx2000.env run --rm label-factory \
   /opt/conda/envs/sam6d/bin/python -c \
   "import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
 ```
 
 ### CUDA out of memory
 
-RTX 2000 Ada esetén ellenőrizd, hogy valóban a `pipeline.rtx2000.env` profilt
+RTX 2000 Ada esetén ellenőrizd, hogy valóban a `docker/pipeline.rtx2000.env` profilt
 használod. Zárd be a többi GPU-programot. MVS esetén csökkenthető a maximális
 képméret vagy a source image-ek száma. A SAM-6D stage-eket ne indítsd több UI
 sessionből párhuzamosan.
@@ -372,7 +372,7 @@ sessionből párhuzamosan.
 A100 40 GiB esetén az MVS workerek ideiglenesen kettőre csökkenthetők:
 
 ```bash
-MVS_GPU_INDICES=0,0 docker compose --env-file pipeline.a100.env \
+MVS_GPU_INDICES=0,0 docker compose --env-file docker/pipeline.a100.env \
   up label-factory
 ```
 
@@ -408,7 +408,7 @@ docker compose logs --tail=150 label-factory
 docker compose logs -f label-factory
 
 # Shell indítása a containerben
-docker compose --env-file pipeline.rtx2000.env run --rm \
+docker compose --env-file docker/pipeline.rtx2000.env run --rm \
   --entrypoint bash label-factory
 
 # Container leállítása és eltávolítása; a bind mountolt adatok megmaradnak

@@ -31,11 +31,11 @@ camera list in the Capture tab is empty.
 
 ## Starting the application
 
-With Docker (recommended, see [`DOCKER.md`](../DOCKER.md)):
+With Docker (recommended, see [`DOCKER.md`](DOCKER.md)):
 
 ```bash
 xhost +local:docker          # lets calibration/recording windows open on your desktop
-docker compose --env-file pipeline.rtx2000.env up label-factory
+docker compose --env-file docker/pipeline.rtx2000.env up label-factory
 ```
 
 or in a native installation:
@@ -419,10 +419,10 @@ the paper; the SAM-6D stage takes about 59 % of them.
 |---|---|
 | Red line in **Environment readiness** | The selected Python environment lacks a package or CUDA. In Docker rebuild the image; natively follow the installation chapter of the [README](../README.md#installation). |
 | A button is greyed out | The previous stage is not finished. Look at the ⛔ stage in the progression bar. |
-| No camera in the list | Reconnect the camera (USB 3), press **Refresh connected cameras**. In Docker see the camera access section of [`DOCKER.md`](../DOCKER.md). |
+| No camera in the list | Reconnect the camera (USB 3), press **Refresh connected cameras**. In Docker see the camera access section of [`DOCKER.md`](DOCKER.md). |
 | Calibration/recording window does not open in Docker | Run `xhost +local:docker` on the host before starting the container. |
 | *“This calibration is for … but the selected RGB stream is …”* | Select the resolution preset that matches the saved calibration, or calibrate again. |
-| Out of CUDA memory during reconstruction or SAM-6D | Lower **Maximum MVS image size**, use the `pipeline.rtx2000.env` profile, process fewer frames with **Limit frame range**, or use `fastsam`. |
+| Out of CUDA memory during reconstruction or SAM-6D | Lower **Maximum MVS image size**, use the `docker/pipeline.rtx2000.env` profile, process fewer frames with **Limit frame range**, or use `fastsam`. |
 | An object is *not found* in pose fitting | Check its masks in tab 4, lower the detection threshold, or increase the translation threshold slightly and re-run pose fitting. |
 | Overlay is shifted | Check the model scale (tab 6), the STL real-world size and the calibration. |
 | Upload requirements never disappear | Enter `owner/name`, a token with write permission, and refresh the inventory. |
