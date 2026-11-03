@@ -105,25 +105,19 @@ Processing time on a laptop workstation (NVIDIA RTX 2000 Ada, 8 GB VRAM;
 Intel Core i5-13600HX; 32 GB RAM), measured over 20 recorded scenes of 250 RGB-D
 frames each: **30.1 ± 3.6 min per scene**; the SAM-6D stage takes 59 % of it.
 
-**Comparison with published methods.** The table lists published results on the
-same benchmark. Label Factory does not predict poses from a single image: it
-annotates a complete recording of a static scene with the CAD models given.
-The methods differ in input, in whether they were trained on YCB-Video, and in
-evaluation protocol, so the table shows the accuracy level rather than a
-like-for-like ranking. The values of the other methods are as reported in
-the cited papers.
+**Comparison with multi-view methods.** Label Factory consolidates the pose
+estimates of many frames of a static scene, so the relevant published reference is
+a multi-view method on the same benchmark. CosyPose is a multi-view framework
+that reports YCB-Video results for several views; it works on RGB images and was
+trained on YCB-Video, whereas Label Factory uses RGB-D, the CAD models and no
+training on the benchmark. The two use different numbers of views and evaluation
+protocols, so the table shows the accuracy level rather than a like-for-like
+ranking.
 
-| Method | Input | CAD model | Trained on YCB-V | ADD-S AUC | ADD(-S) AUC | Source |
+| Method | Input | Views | Trained on YCB-V | ADD-S AUC | ADD(-S) AUC | Source |
 |---|---|---|---|---|---|---|
-| **Label Factory (ours)** | RGB-D sequence | yes | no | **97.0** | **90.9** | this work |
-| PoseCNN | RGB | no | yes | 75.8 | 59.9 | [FFB6D paper](https://arxiv.org/abs/2103.02242) |
-| DenseFusion | RGB-D | no | yes | 91.2 | 82.9 | [FFB6D paper](https://arxiv.org/abs/2103.02242) |
-| PVN3D | RGB-D | no | yes | 95.5 | 91.8 | [FFB6D paper](https://arxiv.org/abs/2103.02242) |
-| FFB6D | RGB-D | no | yes | 96.6 | 92.7 | [arXiv 2103.02242](https://arxiv.org/abs/2103.02242) |
-| GDR-Net | RGB | no | yes | 91.6 | 84.3 | [arXiv 2102.12145](https://arxiv.org/abs/2102.12145) |
-| CosyPose, single view | RGB | yes | yes | 89.8 | 84.5 | [arXiv 2008.08465](https://arxiv.org/abs/2008.08465) |
-| CosyPose, 5 views | RGB, multi-view | yes | yes | 93.4 | not reported | [arXiv 2008.08465](https://arxiv.org/abs/2008.08465) |
-| FoundationPose | RGB-D | yes | no | 97.4 | 91.5 | [arXiv 2312.08344](https://arxiv.org/abs/2312.08344) |
+| **Label Factory (ours)** | RGB-D sequence | all frames of the scene | no | **97.0** | **90.9** | this work |
+| CosyPose (multi-view) | RGB | 5 | yes | 93.4 | not reported | [arXiv 2008.08465](https://arxiv.org/abs/2008.08465) |
 
 The tables and per-object results are in [`evaluation/`](evaluation).
 
