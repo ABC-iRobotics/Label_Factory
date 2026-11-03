@@ -65,27 +65,10 @@ task-specific datasets that can be published to Hugging Face.
 
 ### How it works
 
-```mermaid
-%%{init: {"theme": "neutral", "themeVariables": {"fontSize": "12px"}, "flowchart": {"nodeSpacing": 20, "rankSpacing": 30, "padding": 6}}}%%
-flowchart TB
-    subgraph row1[" "]
-        direction LR
-        A("RealSense<br/>RGB-D recording") --> B("Frame selection<br/>by overlap")
-        B --> C("COLMAP SfM<br/>+ MVS")
-        C --> D("Metric scale<br/>from depth")
-        B --> E("SAM-6D<br/>segmentation<br/>+ pose")
-        D --> F("Pose consolidation<br/>RANSAC, symmetries,<br/>verification")
-        E --> F
-    end
-    subgraph row2[" "]
-        direction RL
-        G("BlenderProc<br/>scene") --> H("Per-frame<br/>annotations")
-        H --> I("Parquet datasets<br/>on Hugging Face")
-    end
-    row1 --> row2
-    style row1 fill:none,stroke:none
-    style row2 fill:none,stroke:none
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/workflow_dark.png">
+  <img src="docs/images/workflow.png" alt="Label Factory workflow: recording, frame selection, metric reconstruction and SAM-6D, pose consolidation, BlenderProc scene, annotations and Parquet datasets">
+</picture>
 
 1. **Frame selection.** Two subsets of the recorded frames are selected by visual
    overlap: a sparser one for the reconstruction and a denser one for pose
