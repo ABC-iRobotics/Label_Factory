@@ -1,0 +1,1 @@
+This work was supported in part by Project 2024-1.2.3-HU-RIZONT-00069 (MedLaBotX), implemented with support provided by the Ministry of Culture and Innovation of Hungary from the National Research, Development, and Innovation Fund, financed under the 2024-1.2.3-HU-RIZONT funding scheme; in part by the Consolidator Researcher Grant of Óbuda University under Grant OKPPKPC004

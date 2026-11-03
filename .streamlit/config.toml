@@ -1,0 +1,9 @@
+[server]
+# Polling avoids Linux's finite inotify watch allocation being exhausted by the
+# large reconstruction, dataset, and external-model directory trees.
+fileWatcherType = "poll"
+showEmailPrompt = false
+
+[browser]
+# Containers start non-interactively, so the first-run email prompt must be off.
+gatherUsageStats = false

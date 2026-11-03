@@ -1,0 +1,37 @@
+{
+  "sam6d_vs_keyframes_3_objects": {
+    "n": 10,
+    "pearson_r": 0.9735937519990446,
+    "r_squared": 0.9478847939315772,
+    "slope_s_per_frame": 12.71103049673727,
+    "intercept_s": 189.83817565587876
+  },
+  "total_vs_keyframes_3_objects": {
+    "n": 10,
+    "pearson_r": 0.9196097859178464,
+    "r_squared": 0.8456821583558672,
+    "slope_s_per_frame": 14.862927553602358,
+    "intercept_s": 697.6509713676918
+  },
+  "sam6d_vs_keyframes_4_objects": {
+    "n": 10,
+    "pearson_r": 0.9002074882192174,
+    "r_squared": 0.8103735218459523,
+    "slope_s_per_frame": 19.304994213571792,
+    "intercept_s": 135.41660494476682
+  },
+  "total_vs_keyframes_4_objects": {
+    "n": 10,
+    "pearson_r": 0.7934472968482629,
+    "r_squared": 0.6295586128758154,
+    "slope_s_per_frame": 15.888760652288227,
+    "intercept_s": 1142.484113624411
+  },
+  "sam6d_vs_frame_object_tasks_all": {
+    "n": 20,
+    "pearson_r": 0.9378609728849199,
+    "r_squared": 0.8795832044606484,
+    "slope_s_per_frame": 5.0044676924601275,
+    "intercept_s": 71.20323812335141
+  }
+}

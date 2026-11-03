@@ -1,4 +1,57 @@
-# Package build
-build/
-install/
-log/
+# Local Python and Conda environments
+LabelFactory/
+.venv/
+venv/
+env/
+
+# Python and tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Credentials and machine-local overrides
+.env
+scripts/configs/local.yaml
+
+# Recorded and generated data
+data/*
+!data/.gitkeep
+outputs/
+calibration/cameras/
+calibration/charuco/captures/
+
+# Model weights and generated SAM-6D assets
+pretrains/
+checkpoints/
+external/SAM-6D/**/checkpoints/
+external/SAM-6D/**/outputs/
+external/SAM-6D/**/output/
+external/SAM-6D/**/templates/
+*.pth
+*.pt
+*.ckpt
+
+# Reconstruction and publication artifacts
+*.bag
+*.bin
+*.db
+*.ply
+*.parquet
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+
+# Third-party checkouts that are cloned separately (see docs/USAGE.md) and local results
+external/bop_toolkit/
+evaluation/bop_toolkit/
+BOP/
+BOP_toolkit_root/
+
+# Local notes and drafts that are not part of the release
+paper/
+FUTTATASI_UTMUTATO.txt
+*.bak

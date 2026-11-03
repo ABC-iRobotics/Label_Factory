@@ -1,0 +1,53 @@
+services:
+  label-factory:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        TORCH_CUDA_ARCH_LIST: ${TORCH_CUDA_ARCH_LIST:-8.9+PTX}
+    image: label-factory:local
+    gpus: all
+    ports:
+      - "8501:8501"
+    environment:
+      DISPLAY: ${DISPLAY:-:0}
+      QT_X11_NO_MITSHM: "1"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+      STREAMLIT_SERVER_SHOW_EMAIL_PROMPT: "false"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility,graphics
+      SAM6D_PYTHON: /opt/conda/envs/sam6d/bin/python
+      SAM6D_BLENDER_PATH: /opt/blender
+      MATCHING_MODE: ${MATCHING_MODE:-sequential}
+      SEQUENTIAL_OVERLAP: ${SEQUENTIAL_OVERLAP:-15}
+      SFM_THREADS: ${SFM_THREADS:-16}
+      METRIC_SCALE_WORKERS: ${METRIC_SCALE_WORKERS:-4}
+      SAM6D_TEMPLATE_WORKERS: ${SAM6D_TEMPLATE_WORKERS:-1}
+      FRAME_SELECTION_TARGET_OVERLAP: ${FRAME_SELECTION_TARGET_OVERLAP:-0.70}
+      MVS_GPU_INDICES: ${MVS_GPU_INDICES:-0}
+      MVS_THREADS: ${MVS_THREADS:-16}
+      MVS_CACHE_SIZE_GB: ${MVS_CACHE_SIZE_GB:-16}
+      MVS_SOURCE_IMAGES: ${MVS_SOURCE_IMAGES:-15}
+      MVS_WINDOW_RADIUS: ${MVS_WINDOW_RADIUS:-4}
+      MVS_WINDOW_STEP: ${MVS_WINDOW_STEP:-1}
+      MVS_NUM_SAMPLES: ${MVS_NUM_SAMPLES:-10}
+      MVS_NUM_ITERATIONS: ${MVS_NUM_ITERATIONS:-3}
+      DENSE_NEIGHBORS: ${DENSE_NEIGHBORS:-10}
+      SAM6D_ALLOW_TF32: ${SAM6D_ALLOW_TF32:-1}
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - ./data:/workspace/data
+      - ./calibration:/workspace/calibration
+      - ./checkpoints/ism:/workspace/external/SAM-6D/SAM-6D/Instance_Segmentation_Model/checkpoints:ro
+      - ./checkpoints/pem:/workspace/external/SAM-6D/SAM-6D/Pose_Estimation_Model/checkpoints:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      # Bind the complete USB bus so cameras connected after container startup
+      # also become visible inside the container.
+      - /dev/bus/usb:/dev/bus/usb:rw
+    device_cgroup_rules:
+      # USB character devices use major number 189. This grants access without
+      # putting the complete container into privileged mode.
+      - "c 189:* rmw"
+    shm_size: "8gb"
+    stdin_open: true
+    tty: true

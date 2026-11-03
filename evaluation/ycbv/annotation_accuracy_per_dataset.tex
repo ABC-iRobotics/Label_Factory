@@ -1,0 +1,27 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Annotation accuracy of the full pipeline for each of the 12 YCB-Video BOP19 test sequences. IoU: mean mask IoU against the visible-instance masks of the best-supported instance of each object; ADD-S and ADD(-S) AUC (10\,cm), AR$_{MSSD}$ and AR$_{MSPD}$ in \%; objects without an annotation count as failures. The last row pools all targets.}
+\label{tab:annotation_accuracy_sequences}
+\begin{tabular}{lrrcccccc}
+\hline
+Sequence & Obj. & Targets & IoU & ADD-S AUC & ADD(-S) AUC & AR$_{MSSD}$ & AR$_{MSPD}$ & Transl. err. (mm) \\
+\hline
+comparison\_01 & 5 & 375 & 68.7 & 96.0 & 79.2 & 89.6 & 84.0 & 5.8 \\
+comparison\_02 & 4 & 300 & 87.5 & 97.6 & 96.6 & 96.5 & 93.1 & 3.4 \\
+comparison\_03 & 5 & 373 & 88.5 & 97.7 & 96.3 & 98.0 & 93.0 & 3.2 \\
+comparison\_04 & 5 & 375 & 89.2 & 96.6 & 78.3 & 95.1 & 91.2 & 6.1 \\
+comparison\_05 & 3 & 225 & 92.9 & 97.5 & 95.1 & 92.4 & 91.4 & 3.1 \\
+comparison\_06 & 3 & 225 & 90.2 & 97.4 & 96.7 & 97.3 & 95.5 & 3.2 \\
+comparison\_07 & 5 & 375 & 90.2 & 97.4 & 96.7 & 99.0 & 96.1 & 3.6 \\
+comparison\_08 & 6 & 450 & 89.7 & 96.8 & 94.9 & 96.3 & 91.5 & 4.4 \\
+comparison\_09 & 4 & 300 & 87.5 & 96.2 & 92.7 & 86.9 & 71.0 & 3.6 \\
+comparison\_10 & 5 & 375 & 84.4 & 97.0 & 92.8 & 95.4 & 88.3 & 5.4 \\
+comparison\_11 & 4 & 300 & 90.9 & 97.3 & 96.3 & 99.4 & 97.2 & 3.5 \\
+comparison\_12 & 6 & 450 & 85.7 & 96.7 & 82.6 & 81.2 & 74.0 & 4.9 \\
+\hline
+Mean over sequences & 4.6 & 343.6 & 87.1 & 97.0 & 91.5 & 93.9 & 88.8 & 4.2 \\
+All sequences (pooled) & 21 & 4123 & 86.7 & 97.0 & 90.9 & 93.6 & 88.4 & 4.1 \\
+\hline
+\end{tabular}
+\end{table}

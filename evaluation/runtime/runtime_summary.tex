@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Per-stage wall-clock time of the pipeline (mean $\pm$ sample std, minutes) for scenes with three and four annotated objects, and for all scenes together.}
+\label{tab:runtime}
+\begin{tabular}{lccc}
+\hline
+Stage & 3 obj. ($n=10$) & 4 obj. ($n=10$) & All ($n=20$) \\
+\hline
+Frame selection & $0.2 \pm 0.0$ & $0.2 \pm 0.0$ & $0.2 \pm 0.0$ \\
+SfM/MVS reconstruction & $6.7 \pm 0.8$ & $8.6 \pm 0.5$ & $7.6 \pm 1.1$ \\
+SAM-6D templates & $1.3 \pm 0.0$ & $1.9 \pm 0.6$ & $1.6 \pm 0.5$ \\
+SAM-6D seg.\ + pose & $16.5 \pm 2.0$ & $19.2 \pm 1.6$ & $17.9 \pm 2.2$ \\
+Consolidation & $0.1 \pm 0.1$ & $0.0 \pm 0.0$ & $0.1 \pm 0.1$ \\
+Annotation rendering & $2.4 \pm 0.1$ & $3.1 \pm 0.2$ & $2.8 \pm 0.4$ \\
+\hline
+Total per scene & $27.3 \pm 2.5$ & $33.0 \pm 1.5$ & $30.1 \pm 3.6$ \\
+\hline
+\end{tabular}
+\end{table}

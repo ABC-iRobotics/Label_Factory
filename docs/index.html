@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Label Factory</title>
+<meta name="description" content="Label Factory turns a short RGB-D recording of a static scene and CAD models into annotated training data for depth estimation, instance segmentation and 6DoF pose estimation.">
+<style>
+:root{--bg:#ffffff;--fg:#1c2330;--muted:#5b6575;--line:#dfe3ea;--card:#f5f7fa;--accent:#1f5fbf;--accent-fg:#ffffff}
+@media (prefers-color-scheme:dark){:root{--bg:#10141b;--fg:#e6e9ef;--muted:#9aa4b2;--line:#2a313c;--card:#181e27;--accent:#6aa6ff;--accent-fg:#0b1220}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main,header,footer{max-width:900px;margin:0 auto;padding:0 20px}
+header{padding-top:56px;padding-bottom:24px;text-align:center}
+h1{font-size:2.3rem;line-height:1.2;margin:0 0 8px}
+.sub{color:var(--muted);font-size:1.1rem;margin:0 0 20px}
+.authors{margin:0;font-size:1rem}
+.affil{color:var(--muted);font-size:.9rem;margin:6px 0 22px}
+.buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.btn{display:inline-block;padding:9px 18px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);text-decoration:none;font-weight:600}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+section{padding:22px 0;border-top:1px solid var(--line)}
+h2{font-size:1.4rem;margin:0 0 12px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;padding:0;list-style:none;counter-reset:s}
+.steps li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;counter-increment:s}
+.steps li::before{content:counter(s);display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-weight:700;font-size:.85rem;margin-right:8px}
+.steps b{display:inline}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:.95rem}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:12px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+.stat .v{font-size:1.6rem;font-weight:700;color:var(--accent)}
+.stat .l{color:var(--muted);font-size:.85rem}
+pre{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;font-size:.88rem}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+a{color:var(--accent)}
+.note{color:var(--muted);font-size:.9rem}
+footer{padding:24px 20px 48px;color:var(--muted);font-size:.88rem;border-top:1px solid var(--line)}
+@media (max-width:560px){h1{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Label Factory</h1>
+  <p class="sub">A Rapid Real-World Dataset Generation for Robotic Perception</p>
+  <p class="authors">Ármin Károly<sup>1</sup>, Fangzhou Liu<sup>2</sup>, Imre J. Rudas<sup>1</sup>, Péter Galambos<sup>1</sup></p>
+  <p class="affil"><sup>1</sup> Antal Bejczy Center for Intelligent Robotics, Óbuda University, Budapest &nbsp;·&nbsp;
+  <sup>2</sup> National Key Laboratory of Modeling and Simulation for Complex Systems, Harbin Institute of Technology</p>
+  <div class="buttons">
+    <a class="btn primary" href="https://github.com/ABC-iRobotics/Label_Factory">Code</a>
+    <a class="btn" href="https://huggingface.co/KarolyArmin">Datasets</a>
+    <a class="btn" href="#citation">BibTeX</a>
+    <!-- TODO: add a "Paper" button with the DOI / arXiv link after publication -->
+  </div>
+</header>
+
+<main>
+<section id="abstract">
+  <h2>Overview</h2>
+  <p>The rapid preparation of accurately annotated real-world training data remains a major bottleneck in the development of learning-based robotic perception systems. Label Factory converts a short multi-view RGB-D recording of a static scene into training-ready datasets. Given metric 3D models of the objects, it combines metric scene reconstruction with zero-shot 6DoF object pose estimation to establish a persistent scene-level representation, without object-specific network training or frame-wise manual annotation.</p>
+  <p>Pose hypotheses from selected frames are transformed into the reconstructed metric frame and robustly consolidated across viewpoints. The resulting object configuration and camera trajectory are then used to generate geometrically consistent annotations for the whole registered sequence, including frames that the pose estimator never processed. One acquisition provides training data for depth estimation, instance segmentation and classification, and 6DoF object pose estimation.</p>
+</section>
+
+<section id="method">
+  <h2>How it works</h2>
+  <ol class="steps">
+    <li><b>Frame selection.</b> Sparser and denser frame subsets are chosen by visual overlap for reconstruction and pose estimation.</li>
+    <li><b>Metric reconstruction.</b> COLMAP SfM and MVS give the camera trajectory and a dense cloud; the sensor depth fixes the metric scale.</li>
+    <li><b>Zero-shot pose estimation.</b> SAM-6D estimates frame-level poses of the known objects from their CAD models.</li>
+    <li><b>Multi-frame consolidation.</b> RANSAC with symmetry-aware orientation consensus merges the hypotheses in the common frame.</li>
+    <li><b>Annotation rendering.</b> The consolidated scene is rendered from every registered camera with BlenderProc.</li>
+    <li><b>Datasets.</b> Masks, boxes, poses and depth are exported as Parquet tables for Hugging Face.</li>
+  </ol>
+</section>
+
+<section id="results">
+  <h2>Results</h2>
+  <p>Annotation accuracy on the 12 test sequences of the BOP19 YCB-Video benchmark (4,123 target instances, 21 object categories). The CAD models are given; no ground-truth pose is used.</p>
+  <div class="stats">
+    <div class="stat"><div class="v">97.0</div><div class="l">ADD-S AUC</div></div>
+    <div class="stat"><div class="v">90.9</div><div class="l">ADD(-S) AUC</div></div>
+    <div class="stat"><div class="v">88.5</div><div class="l">BOP AR</div></div>
+    <div class="stat"><div class="v">86.7%</div><div class="l">mask IoU</div></div>
+    <div class="stat"><div class="v">4.1 mm</div><div class="l">median translation error</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Method (same 970 targets)</th><th class="n">ADD-S AUC</th><th class="n">ADD(-S) AUC</th></tr></thead>
+    <tbody>
+      <tr><td>SAM-6D, single frame</td><td class="n">77.7</td><td class="n">68.3</td></tr>
+      <tr><td>Label Factory (multi-frame consolidation)</td><td class="n">96.8</td><td class="n">88.4</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Consolidation lifts the SAM-6D baseline by about 19 ADD-S points. The remaining ADD(-S) gap to trained single-view methods is concentrated in two nearly rotationally symmetric objects, the master chef can and the tuna fish can, whose orientation is determined only by their printed label.</p>
+  <h3>Processing time</h3>
+  <p>A scene of 250 RGB-D frames takes <b>30.1 ± 3.6 min</b> on a laptop workstation (NVIDIA RTX 2000 Ada with 8 GB, Intel Core i5-13600HX, 32 GB RAM), measured over 20 recorded scenes. The SAM-6D stage accounts for 59 % of the time.</p>
+</section>
+
+<section id="datasets">
+  <h2>Datasets</h2>
+  <p>The datasets recorded with the framework, hand tools and labware items with ten scenes each, are published on the <a href="https://huggingface.co/datasets/KarolyArmin/Hand_tools">Hugging Face</a> <!-- TODO: link the labware dataset -->. Each provides the configurations <code>depth_estimation</code>, <code>instance_segmentation</code>, <code>object_pose_estimation</code> and <code>object_pose_models</code>.</p>
+<pre><code>from datasets import load_dataset
+poses = load_dataset("KarolyArmin/Hand_tools", "object_pose_estimation")</code></pre>
+</section>
+
+<section id="start">
+  <h2>Get started</h2>
+<pre><code>git clone https://github.com/ABC-iRobotics/Label_Factory.git
+cd Label_Factory
+# place the SAM-6D checkpoints in checkpoints/ (see the README)
+docker compose build
+docker compose up        # user interface on http://localhost:8501</code></pre>
+  <p>Installation, the command-line workflow and the evaluation scripts are described in the <a href="https://github.com/ABC-iRobotics/Label_Factory#readme">README</a> and the <a href="https://github.com/ABC-iRobotics/Label_Factory/blob/main/docs/USAGE.md">usage guide</a>.</p>
+</section>
+
+<section id="citation">
+  <h2>Citation</h2>
+<pre><code>@misc{karoly2026labelfactory,
+  title  = {Label Factory: A Rapid Real-World Dataset Generation for Robotic Perception},
+  author = {K{\'a}roly, {\'A}rmin and Liu, Fangzhou and Rudas, Imre J. and Galambos, P{\'e}ter},
+  year   = {2026},
+  note   = {Preprint. Code: https://github.com/ABC-iRobotics/Label_Factory}
+}</code></pre>
+</section>
+</main>
+
+<footer>
+  <p>The code is released under the MIT License. This work was supported in part by Project 2024-1.2.3-HU-RIZONT-00069 (MedLaBotX), implemented with support provided by the Ministry of Culture and Innovation of Hungary from the National Research, Development, and Innovation Fund, financed under the 2024-1.2.3-HU-RIZONT funding scheme; in part by the Consolidator Researcher Grant of Óbuda University under Grant OKPPKPC004.</p>
+</footer>
+</body>
+</html>

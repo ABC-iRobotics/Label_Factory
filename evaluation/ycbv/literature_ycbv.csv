@@ -1,0 +1,11 @@
+method,adds_auc,add_or_adds_auc,bop_ar,mask_iou,input,uses_cad,needs_training,source
+PoseCNN,75.8,59.9,,,RGB,no,yes,"FFB6D table, arXiv 2103.02242 (no refinement)"
+DenseFusion,91.2,82.9,,,RGB-D,no,yes,"FFB6D table, arXiv 2103.02242 (no refinement)"
+PVN3D,95.5,91.8,,,RGB-D,no,yes,"FFB6D table, arXiv 2103.02242"
+FFB6D,96.6,92.7,,,RGB-D,no,yes,"arXiv 2103.02242 (no refinement)"
+GDR-Net,91.6,84.3,,,RGB,no,yes,"CVPR 2021; ADD(-S) 84.3 or 84.4 in two summaries"
+CosyPose (single view),89.8,84.5,,,RGB,yes,yes,arXiv 2008.08465
+CosyPose (5 views),93.4,,,,RGB multi-view,yes,yes,arXiv 2008.08465 (ADD-S only)
+MegaPose,,,65.3*,,RGB(-D),yes,no,"*BOP AR; configuration unconfirmed, arXiv 2212.06870"
+FoundationPose,97.4,91.5,,,RGB-D,yes,no,arXiv 2312.08344 (model-based setup)
+SAM-6D,,,77.6*,,RGB-D,yes,no,"*BOP AR; from one summary, unconfirmed, arXiv 2311.15707"

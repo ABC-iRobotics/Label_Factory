@@ -1,0 +1,6 @@
+# Project paths may be relative when the UI is launched from the repository root.
+path: .
+dataset_id: "0000"
+fps: 5
+n_points: 20000
+

@@ -1,0 +1,6 @@
+services:
+  label-factory:
+    # Required on hosts where librealsense USB ioctls remain blocked despite
+    # the /dev/bus/usb bind mount and USB device cgroup rule. Use this override
+    # only for trusted local calibration and RGB-D capture.
+    privileged: true
