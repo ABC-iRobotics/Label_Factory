@@ -119,6 +119,7 @@ it is the same metric as in the table above.
 | **Label Factory (ours)** | RGB-D sequence, all frames | **88.5** | this work |
 | AlignPose (multi-view, on FoundPose candidates) | RGB, multi-view | 83.9 | [arXiv 2512.20538](https://arxiv.org/abs/2512.20538) |
 | CosyPose multi-view (on FoundPose candidates) | RGB, multi-view | 79.2 | [arXiv 2512.20538](https://arxiv.org/abs/2512.20538) |
+| CosyPose (5 views) | RGB, multi-view | – | [arXiv 2008.08465](https://arxiv.org/abs/2008.08465) |
 
 The AlignPose paper also applies the multi-view step to other single-view
 candidates (GigaPose, MegaPose, Co-op) with AR between 80.0 and 83.8.
