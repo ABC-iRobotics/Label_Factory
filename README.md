@@ -106,18 +106,23 @@ Intel Core i5-13600HX; 32 GB RAM), measured over 20 recorded scenes of 250 RGB-D
 frames each: **30.1 ± 3.6 min per scene**; the SAM-6D stage takes 59 % of it.
 
 **Comparison with multi-view methods.** Label Factory consolidates the pose
-estimates of many frames of a static scene, so the relevant published reference is
-a multi-view method on the same benchmark. CosyPose is a multi-view framework
-that reports YCB-Video results for several views; it works on RGB images and was
-trained on YCB-Video, whereas Label Factory uses RGB-D, the CAD models and no
-training on the benchmark. The two use different numbers of views and evaluation
-protocols, so the table shows the accuracy level rather than a like-for-like
-ranking.
+estimates of many frames of a static scene, so the relevant published references
+are multi-view methods on the same benchmark. They work on RGB images (AlignPose
+and CosyPose on top of single-view pose candidates), whereas Label Factory uses
+RGB-D, the CAD models and no training on the benchmark. The numbers of views and
+the evaluation protocols differ, so the table shows the accuracy level rather
+than a like-for-like ranking. AlignPose reports the BOP average recall (AR), the
+same metric as in the table above.
 
-| Method | Input | Views | Trained on YCB-V | ADD-S AUC | ADD(-S) AUC | Source |
-|---|---|---|---|---|---|---|
-| **Label Factory (ours)** | RGB-D sequence | all frames of the scene | no | **97.0** | **90.9** | this work |
-| CosyPose (multi-view) | RGB | 5 | yes | 93.4 | not reported | [arXiv 2008.08465](https://arxiv.org/abs/2008.08465) |
+| Method | Input | BOP AR | ADD-S AUC | Source |
+|---|---|---|---|---|
+| **Label Factory (ours)** | RGB-D sequence, all frames | **88.5** | **97.0** | this work |
+| AlignPose (multi-view, on FoundPose candidates) | RGB, multi-view | 83.9 | not reported | [arXiv 2512.20538](https://arxiv.org/abs/2512.20538) |
+| CosyPose multi-view (on FoundPose candidates) | RGB, multi-view | 79.2 | not reported | [arXiv 2512.20538](https://arxiv.org/abs/2512.20538) |
+| CosyPose (5 views) | RGB, multi-view | not reported | 93.4 | [arXiv 2008.08465](https://arxiv.org/abs/2008.08465) |
+
+The AlignPose paper also applies the multi-view step to other single-view
+candidates (GigaPose, MegaPose, Co-op) with AR between 80.0 and 83.8.
 
 The tables and per-object results are in [`evaluation/`](evaluation).
 
