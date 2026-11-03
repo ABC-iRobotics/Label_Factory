@@ -51,7 +51,7 @@ footer{padding:24px 20px 48px;color:var(--muted);font-size:.88rem;border-top:1px
   <div class="buttons">
     <a class="btn primary" href="https://github.com/ABC-iRobotics/Label_Factory">Code</a>
     <a class="btn" href="https://huggingface.co/ABC-iRobotics">Datasets</a>
-    <a class="btn" href="#citation">BibTeX</a>
+    <a class="btn" href="#citation">Citation</a>
   </div>
 </header>
 
@@ -98,7 +98,7 @@ footer{padding:24px 20px 48px;color:var(--muted);font-size:.88rem;border-top:1px
 
 <section id="datasets">
   <h2>Datasets</h2>
-  <p>The datasets recorded with the framework, hand tools and labware items with ten scenes each, are published on Hugging Face: <a href="https://huggingface.co/datasets/ABC-iRobotics/Hand_Tools">Hand tools</a> and <a href="https://huggingface.co/datasets/ABC-iRobotics/LabWare_Items">Labware items</a>. Each provides the configurations <code>depth_estimation</code>, <code>instance_segmentation</code>, <code>object_pose_estimation</code> and <code>object_pose_models</code>.</p>
+  <p>The datasets recorded with the framework, hand tools and labware items with ten scenes each, are published on the <a href="https://huggingface.co/ABC-iRobotics">ABC-iRobotics Hugging Face page</a> (<a href="https://huggingface.co/datasets/ABC-iRobotics/Hand_Tools">Hand tools</a>, <a href="https://huggingface.co/datasets/ABC-iRobotics/LabWare_Items">Labware items</a>). Each provides the configurations <code>depth_estimation</code>, <code>instance_segmentation</code>, <code>object_pose_estimation</code> and <code>object_pose_models</code>.</p>
 <pre><code>from datasets import load_dataset
 poses = load_dataset("ABC-iRobotics/Hand_Tools", "object_pose_estimation")</code></pre>
 </section>
@@ -115,12 +115,7 @@ docker compose up        # user interface on http://localhost:8501</code></pre>
 
 <section id="citation">
   <h2>Citation</h2>
-<pre><code>@misc{karoly2026labelfactory,
-  title  = {Label Factory: A Rapid Real-World Dataset Generation for Robotic Perception},
-  author = {K{\'a}roly, {\'A}rmin and Liu, Fangzhou and Rudas, Imre J. and Galambos, P{\'e}ter},
-  year   = {2026},
-  note   = {Preprint. Code: https://github.com/ABC-iRobotics/Label_Factory}
-}</code></pre>
+<p>The paper describing Label Factory is in progress. The citation will be added here after publication.</p>
 </section>
 </main>
 
