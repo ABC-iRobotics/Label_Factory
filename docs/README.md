@@ -16,6 +16,7 @@ Other material:
 | Path | Content |
 |---|---|
 | [`index.html`](index.html) | source of the [project page](https://abc-irobotics.github.io/Label_Factory/) |
+| [`media/`](media) | videos and images of the project page (animation steps, 5 + 5 scene videos, annotated frames) |
 | [`images/`](images) | figures and screenshots used by the documentation (light and dark variants) |
 | [`../evaluation/`](../evaluation) | result tables of the paper (YCB-Video, runtime) |
 

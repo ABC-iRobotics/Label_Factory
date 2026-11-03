@@ -38,16 +38,45 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 a{color:var(--accent)}
 .note{color:var(--muted);font-size:.9rem}
 footer{padding:24px 20px 48px;color:var(--muted);font-size:.88rem;border-top:1px solid var(--line)}
+
+.flow{width:100%;height:auto;display:block;margin:8px 0}
+.flow .node rect{fill:var(--card);stroke:var(--line);stroke-width:1.5;transition:all .35s}
+.flow .node text{fill:var(--fg);font-size:13px;text-anchor:middle;transition:fill .35s}
+.flow .node{cursor:pointer}
+.flow .node.on rect{fill:var(--accent);stroke:var(--accent)}
+.flow .node.on text{fill:var(--accent-fg)}
+.flow .edge{fill:none;stroke:var(--muted);stroke-width:1.6;opacity:.55;transition:all .35s}
+.flow .edge.on{stroke:var(--accent);opacity:1;stroke-width:2.4;stroke-dasharray:7 5;animation:dash 1s linear infinite}
+.flow marker path{fill:var(--muted)}
+@keyframes dash{to{stroke-dashoffset:-24}}
+.stepper{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:6px}
+.stepper figure{margin:0}
+.stepper img{width:100%;height:auto;border-radius:8px;display:block;background:var(--bg)}
+.stepper h3{margin:0 0 6px;font-size:1.1rem}
+.stepper p{margin:0 0 10px;color:var(--fg)}
+.stepper .count{color:var(--muted);font-size:.85rem;margin-bottom:4px}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ctrl button{font:inherit;cursor:pointer;padding:6px 14px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-weight:600}
+.ctrl button:hover{background:var(--accent);color:var(--accent-fg)}
+.bar{height:3px;background:var(--line);border-radius:2px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent)}
+video{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#000;display:block}
+.vid{margin:12px 0 18px}
+.vid .cap{color:var(--muted);font-size:.9rem;margin:6px 2px 0}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:10px 0}
+.gallery figure{margin:0}
+.gallery img{width:100%;height:auto;border-radius:8px;border:1px solid var(--line);display:block}
+.gallery figcaption{color:var(--muted);font-size:.85rem;margin-top:3px}
+@media (max-width:700px){.stepper{grid-template-columns:1fr}}
 @media (max-width:560px){h1{font-size:1.8rem}}
 </style>
 </head>
 <body>
 <header>
   <h1>Label Factory</h1>
-  <p class="sub">A Rapid Real-World Dataset Generation for Robotic Perception</p>
-  <p class="authors">Ármin Károly<sup>1</sup>, Fangzhou Liu<sup>2</sup>, Imre J. Rudas<sup>1</sup>, Péter Galambos<sup>1</sup></p>
-  <p class="affil"><sup>1</sup> Antal Bejczy Center for Intelligent Robotics, Óbuda University, Budapest &nbsp;·&nbsp;
-  <sup>2</sup> National Key Laboratory of Modeling and Simulation for Complex Systems, Harbin Institute of Technology</p>
+  <p class="sub">Real-World Dataset Generation for Robotic Perception</p>
+  <p class="authors">Ármin Károly</p>
+  <p class="affil">Antal Bejczy Center for Intelligent Robotics, Óbuda University, Budapest</p>
   <div class="buttons">
     <a class="btn primary" href="https://github.com/ABC-iRobotics/Label_Factory">Code</a>
     <a class="btn" href="https://huggingface.co/ABC-iRobotics">Datasets</a>
@@ -64,14 +93,46 @@ footer{padding:24px 20px 48px;color:var(--muted);font-size:.88rem;border-top:1px
 
 <section id="method">
   <h2>How it works</h2>
-  <ol class="steps">
-    <li><b>Frame selection.</b> Sparser and denser frame subsets are chosen by visual overlap for reconstruction and pose estimation.</li>
-    <li><b>Metric reconstruction.</b> COLMAP SfM and MVS give the camera trajectory and a dense cloud; the sensor depth fixes the metric scale.</li>
-    <li><b>Zero-shot pose estimation.</b> SAM-6D estimates frame-level poses of the known objects from their CAD models.</li>
-    <li><b>Multi-frame consolidation.</b> RANSAC with symmetry-aware orientation consensus merges the hypotheses in the common frame.</li>
-    <li><b>Annotation rendering.</b> The consolidated scene is rendered from every registered camera with BlenderProc.</li>
-    <li><b>Datasets.</b> Masks, boxes, poses and depth are exported as Parquet tables for Hugging Face.</li>
-  </ol>
+  <p class="note">The animation steps through the pipeline. Click a box or use the buttons to jump to a step; the images are real results of one labware scene.</p>
+  <svg class="flow" id="flow" viewBox="0 0 1000 350" role="img" aria-label="Workflow of Label Factory: recording, frame selection, metric reconstruction and SAM-6D, pose consolidation, BlenderProc scene, annotations and datasets">
+    <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z"/></marker></defs>
+    <g id="edges">
+      <path class="edge" data-to="B" d="M155 125H195" marker-end="url(#arr)"/>
+      <path class="edge" data-to="C" d="M345 110L385 70" marker-end="url(#arr)"/>
+      <path class="edge" data-to="E" d="M345 140L485 175" marker-end="url(#arr)"/>
+      <path class="edge" data-to="D" d="M545 65H585" marker-end="url(#arr)"/>
+      <path class="edge" data-to="F" d="M745 70L785 105" marker-end="url(#arr)"/>
+      <path class="edge" data-to="F" d="M645 180L785 145" marker-end="url(#arr)"/>
+      <path class="edge" data-to="G" d="M860 160V258" marker-end="url(#arr)"/>
+      <path class="edge" data-to="H" d="M785 295H745" marker-end="url(#arr)"/>
+      <path class="edge" data-to="I" d="M585 295H545" marker-end="url(#arr)"/>
+    </g>
+    <g id="nodes">
+      <g class="node" data-id="A" data-step="0"><rect x="5" y="90" width="150" height="70" rx="10"/><text x="80" y="121">RealSense</text><text x="80" y="139">RGB-D recording</text></g>
+      <g class="node" data-id="B" data-step="1"><rect x="195" y="90" width="150" height="70" rx="10"/><text x="270" y="121">Frame selection</text><text x="270" y="139">by overlap</text></g>
+      <g class="node" data-id="C" data-step="2"><rect x="385" y="35" width="160" height="70" rx="10"/><text x="465" y="66">COLMAP</text><text x="465" y="84">SfM + MVS</text></g>
+      <g class="node" data-id="D" data-step="2"><rect x="585" y="35" width="160" height="70" rx="10"/><text x="665" y="66">Metric scale</text><text x="665" y="84">from sensor depth</text></g>
+      <g class="node" data-id="E" data-step="3"><rect x="485" y="145" width="160" height="70" rx="10"/><text x="565" y="176">SAM-6D</text><text x="565" y="194">segmentation + pose</text></g>
+      <g class="node" data-id="F" data-step="4"><rect x="785" y="90" width="200" height="70" rx="10"/><text x="885" y="115">Pose consolidation</text><text x="885" y="132">RANSAC, symmetries,</text><text x="885" y="149">verification</text></g>
+      <g class="node" data-id="G" data-step="5"><rect x="785" y="260" width="200" height="70" rx="10"/><text x="885" y="291">BlenderProc scene</text><text x="885" y="309">annotation rendering</text></g>
+      <g class="node" data-id="H" data-step="6"><rect x="585" y="260" width="160" height="70" rx="10"/><text x="665" y="291">Per-frame</text><text x="665" y="309">annotations</text></g>
+      <g class="node" data-id="I" data-step="6"><rect x="385" y="260" width="160" height="70" rx="10"/><text x="465" y="291">Parquet datasets</text><text x="465" y="309">on Hugging Face</text></g>
+    </g>
+  </svg>
+  <div class="stepper" id="stepper" aria-live="polite">
+    <figure><picture id="stepPic"><img id="stepImg" alt="" src="media/step1_rgb.jpg"></picture></figure>
+    <div>
+      <div class="count" id="stepCount"></div>
+      <h3 id="stepTitle"></h3>
+      <p id="stepText"></p>
+      <div class="ctrl">
+        <button type="button" id="prev" aria-label="Previous step">&larr; Previous</button>
+        <button type="button" id="play" aria-label="Pause or play the animation">Pause</button>
+        <button type="button" id="next" aria-label="Next step">Next &rarr;</button>
+      </div>
+      <div class="bar"><i id="bar"></i></div>
+    </div>
+  </div>
 </section>
 
 <section id="results">
@@ -85,21 +146,38 @@ footer{padding:24px 20px 48px;color:var(--muted);font-size:.88rem;border-top:1px
     <div class="stat"><div class="v">4.1 mm</div><div class="l">median translation error</div></div>
   </div>
   <table>
-    <thead><tr><th>Metric</th><th class="n">Label Factory</th></tr></thead>
+    <thead><tr><th>Further metrics</th><th class="n">Label Factory</th></tr></thead>
     <tbody>
-      <tr><td>ADD-S AUC</td><td class="n">97.0</td></tr>
-      <tr><td>ADD(-S) AUC</td><td class="n">90.9</td></tr>
-      <tr><td>BOP AR (VSD, MSSD, MSPD)</td><td class="n">88.5</td></tr>
       <tr><td>BOP AR, MSSD</td><td class="n">93.6</td></tr>
       <tr><td>BOP AR, MSPD</td><td class="n">88.4</td></tr>
-      <tr><td>Mask IoU</td><td class="n">86.7 %</td></tr>
       <tr><td>Median ADD-S error</td><td class="n">2.6 mm</td></tr>
-      <tr><td>Median translation error</td><td class="n">4.1 mm</td></tr>
     </tbody>
   </table>
   <p class="note">The accuracy is lowest for two nearly rotationally symmetric objects, the master chef can and the tuna fish can, whose orientation is determined only by their printed label.</p>
   <h3>Processing time</h3>
   <p>A scene of 250 RGB-D frames takes <b>30.1 ± 3.6 min</b> on a laptop workstation (NVIDIA RTX 2000 Ada with 8 GB, Intel Core i5-13600HX, 32 GB RAM), measured over 20 recorded scenes. The SAM-6D stage accounts for 59 % of the time.</p>
+</section>
+
+<section id="gallery">
+  <h2>Consolidated poses on 5 + 5 scenes</h2>
+  <p>Final annotations rendered from the consolidated object poses, shown on five hand-tool scenes and five labware scenes at the same time. Every scene is a 250-frame recording; the colored masks and labels are the instances of the consolidated scene projected into each frame.</p>
+  <div class="vid">
+    <video controls muted loop playsinline preload="metadata" poster="media/hand_tools_poster.jpg"><source src="media/hand_tools_5_scenes.mp4" type="video/mp4"></video>
+    <div class="cap">Hand tools: five scenes in parallel.</div>
+  </div>
+  <div class="vid">
+    <video controls muted loop playsinline preload="metadata" poster="media/labware_poster.jpg"><source src="media/labware_5_scenes.mp4" type="video/mp4"></video>
+    <div class="cap">Labware items: five scenes in parallel.</div>
+  </div>
+  <h3>Annotated frames</h3>
+  <div class="gallery">
+    <figure><img loading="lazy" src="media/still_hand_1.jpg" alt="Hand tools scene with consolidated poses"><figcaption>Hand tools</figcaption></figure>
+    <figure><img loading="lazy" src="media/still_hand_2.jpg" alt="Hand tools scene with consolidated poses"><figcaption>Hand tools</figcaption></figure>
+    <figure><img loading="lazy" src="media/still_hand_3.jpg" alt="Hand tools scene with consolidated poses"><figcaption>Hand tools</figcaption></figure>
+    <figure><img loading="lazy" src="media/still_lab_1.jpg" alt="Labware scene with consolidated poses"><figcaption>Labware items</figcaption></figure>
+    <figure><img loading="lazy" src="media/still_lab_2.jpg" alt="Labware scene with consolidated poses"><figcaption>Labware items</figcaption></figure>
+    <figure><img loading="lazy" src="media/still_lab_3.jpg" alt="Labware scene with consolidated poses"><figcaption>Labware items</figcaption></figure>
+  </div>
 </section>
 
 <section id="datasets">
@@ -128,5 +206,50 @@ docker compose up        # user interface on http://localhost:8501</code></pre>
 <footer>
   <p>The code is released under the MIT License. This work was supported in part by Project 2024-1.2.3-HU-RIZONT-00069 (MedLaBotX), implemented with support provided by the Ministry of Culture and Innovation of Hungary from the National Research, Development, and Innovation Fund, financed under the 2024-1.2.3-HU-RIZONT funding scheme; in part by the Consolidator Researcher Grant of Óbuda University under Grant OKPPKPC004.</p>
 </footer>
+<script>
+(function(){
+  var steps=[
+    {nodes:['A'],t:'Record an RGB-D sequence',x:'A hand-held RGB-D camera is moved slowly around a static scene. About 250 aligned RGB and metric depth frames are recorded; the camera is calibrated once with a ChArUco board and the calibration is reused.',img:'media/step1_rgb.jpg'},
+    {nodes:['B'],t:'Select frames by overlap',x:'Two subsets of the frames are selected by visual overlap: a sparser one for the reconstruction and a denser one for pose estimation. All frames are kept for the final dataset.',img:'media/step_frames.jpg'},
+    {nodes:['C','D'],t:'Metric scene reconstruction',x:'COLMAP recovers the camera trajectory and a dense point cloud; the depth measurements of the sensor fix the metric scale, so the scene and the camera path are in metres.',img:'media/step2_recon.jpg',dark:'media/step2_recon_dark.jpg'},
+    {nodes:['E'],t:'Zero-shot pose estimation',x:'SAM-6D segments the known objects and estimates a pose in every selected frame from their CAD models, without object-specific training. Single frames are noisy; this is expected.',img:'media/step3_sam6d.jpg'},
+    {nodes:['F'],t:'Multi-frame pose consolidation',x:'The per-frame poses are transformed into the metric frame and merged by deterministic RANSAC with symmetry-aware orientation consensus. Several instances of an object are supported, and CAD symmetries are detected automatically.',img:'media/step4_ransac.jpg',dark:'media/step4_ransac_dark.jpg'},
+    {nodes:['G'],t:'Render the annotations',x:'The consolidated scene is rendered from every registered camera with BlenderProc. This also annotates the frames that SAM-6D never processed, with consistent instance identities.',img:'media/step5_overlay.jpg'},
+    {nodes:['H','I'],t:'Export the datasets',x:'RGB, metric depth, instance masks, boxes and 6DoF poses are written per frame and as Parquet tables for depth estimation, instance segmentation and pose estimation, ready for Hugging Face.',img:'media/step6_dataset.jpg'}
+  ];
+  var nodes=[].slice.call(document.querySelectorAll('#flow .node'));
+  var edges=[].slice.call(document.querySelectorAll('#flow .edge'));
+  var pic=document.getElementById('stepPic'),count=document.getElementById('stepCount'),title=document.getElementById('stepTitle'),text=document.getElementById('stepText'),bar=document.getElementById('bar'),playBtn=document.getElementById('play');
+  var cur=0,playing=!window.matchMedia('(prefers-reduced-motion: reduce)').matches,start=0,raf=null,DUR=4500,hold=false;
+  function show(i){
+    cur=(i+steps.length)%steps.length; var s=steps[cur];
+    nodes.forEach(function(n){n.classList.toggle('on',s.nodes.indexOf(n.getAttribute('data-id'))>-1)});
+    edges.forEach(function(e){e.classList.toggle('on',s.nodes.indexOf(e.getAttribute('data-to'))>-1)});
+    count.textContent='Step '+(cur+1)+' of '+steps.length; title.textContent=s.t; text.textContent=s.x;
+    pic.innerHTML=(s.dark?'<source media="(prefers-color-scheme: dark)" srcset="'+s.dark+'">':'')+'<img id="stepImg" alt="'+s.t+'" src="'+s.img+'">';
+    start=performance.now();
+  }
+  function tick(now){
+    if(playing&&!hold){var f=Math.min((now-start)/DUR,1);bar.style.width=(f*100)+'%';if(f>=1){show(cur+1)}}
+    raf=requestAnimationFrame(tick);
+  }
+  function setPlay(v){playing=v;playBtn.textContent=v?'Pause':'Play';start=performance.now();if(!v)bar.style.width='0'}
+  nodes.forEach(function(n){n.addEventListener('click',function(){show(parseInt(n.getAttribute('data-step'),10));start=performance.now()})});
+  document.getElementById('prev').onclick=function(){show(cur-1)};
+  document.getElementById('next').onclick=function(){show(cur+1)};
+  playBtn.onclick=function(){setPlay(!playing)};
+  var st=document.getElementById('stepper');
+  st.addEventListener('mouseenter',function(){hold=true});st.addEventListener('mouseleave',function(){hold=false;start=performance.now()});
+  setPlay(playing); show(0); raf=requestAnimationFrame(tick);
+})();
+</script>
+<script>
+(function(){
+  var vids=[].slice.call(document.querySelectorAll('video'));
+  if(!('IntersectionObserver' in window)||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;if(e.isIntersecting){var p=v.play();if(p&&p.catch)p.catch(function(){})}else{v.pause()}})},{threshold:0.4});
+  vids.forEach(function(v){io.observe(v)});
+})();
+</script>
 </body>
 </html>
