@@ -31,7 +31,7 @@ camera list in the Capture tab is empty.
 
 ## Starting the application
 
-With Docker (recommended, see [`DOCKER.md`](DOCKER.md)):
+With Docker (recommended, see [`INSTALL_DOCKER.md`](INSTALL_DOCKER.md)):
 
 ```bash
 xhost +local:docker          # lets calibration/recording windows open on your desktop
@@ -189,7 +189,7 @@ valid depth.
 
 Instead of recording, you can copy an RGB-D sequence recorded elsewhere into the
 dataset folder (`images/`, `depth_maps/`, `camera.json`; the layout is shown in
-[`USAGE.md`](USAGE.md#expected-dataset-layout)). The progression bar then
+[`USAGE.md`](USAGE.md#input-and-output-layout)). The progression bar then
 shows ✅ and you can continue with Reconstruction.
 
 ## 3. Reconstruction
@@ -386,7 +386,7 @@ RGB image, the metric depth, the instance mask and the overlay side by side.
   1. choose a **license** that is compatible with the images, annotations and
      models you publish (this is not legal advice);
   2. enter the target repository as `owner/name`, for example
-     `KarolyArmin/Hand_tools`;
+     `ABC-iRobotics/Hand_Tools`;
   3. keep **Private Hugging Face repository** ticked when the repository does
      not exist yet and you want it created as private;
   4. paste a Hugging Face **write token** (create it at
@@ -401,7 +401,7 @@ instead of committing directly, so you can inspect the files and the generated
 dataset card there and merge them yourself. The result contains the
 `depth_estimation`, `instance_segmentation`, `object_pose_estimation` and
 `object_pose_models` configurations. The dataset card has ready-to-run loading
-examples.
+examples; the format is described in [`DATASETS.md`](DATASETS.md).
 
 ## Typical settings and run times
 
@@ -417,9 +417,9 @@ the paper; the SAM-6D stage takes about 59 % of them.
 
 | Symptom | What to do |
 |---|---|
-| Red line in **Environment readiness** | The selected Python environment lacks a package or CUDA. In Docker rebuild the image; natively follow the installation chapter of the [README](../README.md#installation). |
+| Red line in **Environment readiness** | The selected Python environment lacks a package or CUDA. In Docker rebuild the image; natively follow [`INSTALL_NATIVE.md`](INSTALL_NATIVE.md). |
 | A button is greyed out | The previous stage is not finished. Look at the ⛔ stage in the progression bar. |
-| No camera in the list | Reconnect the camera (USB 3), press **Refresh connected cameras**. In Docker see the camera access section of [`DOCKER.md`](DOCKER.md). |
+| No camera in the list | Reconnect the camera (USB 3), press **Refresh connected cameras**. In Docker see the camera access section of [`INSTALL_DOCKER.md`](INSTALL_DOCKER.md#camera-and-display-access). |
 | Calibration/recording window does not open in Docker | Run `xhost +local:docker` on the host before starting the container. |
 | *“This calibration is for … but the selected RGB stream is …”* | Select the resolution preset that matches the saved calibration, or calibrate again. |
 | Out of CUDA memory during reconstruction or SAM-6D | Lower **Maximum MVS image size**, use the `docker/pipeline.rtx2000.env` profile, process fewer frames with **Limit frame range**, or use `fastsam`. |

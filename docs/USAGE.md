@@ -1,24 +1,23 @@
-# Usage guide
+# Usage guide (command line)
 
 This guide describes the complete Label Factory workflow from the command line.
-The same stages are available in the Streamlit user interface. Installation is
-described in the [README](../README.md#installation); for the Docker-specific
-details see [`DOCKER.md`](DOCKER.md).
+The same stages are available in the graphical interface, which is described
+step by step in the [user interface guide](UI_GUIDE.md). Installation is
+described in [`INSTALL_DOCKER.md`](INSTALL_DOCKER.md) and
+[`INSTALL_NATIVE.md`](INSTALL_NATIVE.md).
 
 **Contents**
 
 - [Configuration](#configuration)
-- [Guided user interface](#guided-user-interface)
-- [Expected dataset layout](#expected-dataset-layout)
+- [Input and output layout](#input-and-output-layout)
 - [1. Camera calibration](#1-camera-calibration)
-- [2. Record an aligned RealSense RGB-D sequence](#2-record-an-aligned-realsense-rgb-d-sequence)
+- [2. Record an aligned RGB-D sequence](#2-record-an-aligned-rgb-d-sequence)
 - [3. Reconstruct and scale the scene](#3-reconstruct-and-scale-the-scene)
 - [4. Known-object poses with SAM-6D](#4-known-object-poses-with-sam-6d)
 - [5. Create the posed scene and frame annotations](#5-create-the-posed-scene-and-frame-annotations)
 - [6. Review and publish to Hugging Face](#6-review-and-publish-to-hugging-face)
 - [7. Evaluate on YCB-Video (BOP19)](#7-evaluate-on-ycb-video-bop19)
 - [8. Measure the runtime](#8-measure-the-runtime)
-- [Important limitations](#important-limitations)
 - [Troubleshooting](#troubleshooting)
 - [Reproducibility checklist](#reproducibility-checklist)
 
@@ -28,88 +27,62 @@ Edit `scripts/configs/default.yaml`:
 
 ```yaml
 path: .
-dataset_id: 0
+dataset_id: "0000"
 fps: 5
 n_points: 20000
-camera:
-  camera_id: 0
-  fx: 627.28
-  fy: 627.23
-  cx: 629.34
-  cy: 397.82
 ```
 
 `dataset_id: 0` resolves to `data/0000`; `dataset_id: 3` resolves to
-`data/0003`.
+`data/0003`. The interface changes this entry when you select a dataset.
 
-The camera calibration is part of the framework: calibrate once per camera and resolution (step 1), and the recording step copies the saved calibration into the dataset as `data/####/camera.json`. You do not need to write this file yourself, except when you import a sequence recorded elsewhere. Its intrinsic matrix,
-image dimensions, and depth unit are used by reconstruction and projection.
+The camera intrinsics are not configured here. They come from the dataset's `camera.json`, see [Input and output layout](#input-and-output-layout).
 
-## Guided user interface
+## Input and output layout
 
-> A step-by-step walkthrough with screenshots of every tab is in
-> [`UI_GUIDE.md`](UI_GUIDE.md).
-
-The Streamlit UI guides the user through the same command-line stages while
-preserving the exact command used for every operation. Install its small UI
-dependency set in the reconstruction environment:
-
-```bash
-conda activate label-factory
-python -m pip install -r ui/requirements.txt
-```
-
-Start the application from the repository root:
-
-```bash
-streamlit run ui/app.py
-```
-
-For an NVIDIA GPU and RealSense-enabled container deployment, see
-[`DOCKER.md`](DOCKER.md). The Docker setup keeps datasets, camera calibrations,
-SAM-6D checkpoints, and Hugging Face credentials outside the image.
-
-Then open `http://localhost:8501`. The sidebar selects the project YAML and the
-Python interpreters used for reconstruction and SAM-6D. The stage cards show:
-
-- `✅` when the expected outputs exist;
-- `▶️` when prerequisites are ready;
-- `⛔` when required inputs are missing.
-
-The UI includes setup validation, camera calibration, RealSense recording,
-reconstruction, SAM-6D, RANSAC, scene generation, log streaming, command
-previews, annotation video, and reviewed Hugging Face publication. Calibration, capture, and Open3D
-visualizers currently open native desktop windows; browser-native camera and 3D
-views are planned for the Docker deployment.
-
-## Expected dataset layout
+The inputs you provide are the **CAD models** of the objects and an **RGB-D
+recording** of the scene. The camera calibration is **not** an input you have to
+supply: the framework creates it (step 1) and reuses it for every later recording
+with the same camera and resolution. If you already have a calibration, it can be
+used instead (see step 1). Only a sequence recorded outside the framework must be
+imported together with its `camera.json`.
 
 ```text
 data/0000/
-├── camera.json
-├── images/
-│   ├── 000000.png
-│   └── ...
-├── depth_maps/
-│   ├── depth_000000.png
-│   └── ...
+├── camera.json                 intrinsics; written by the calibration/recording step
+├── images/000000.png ...       RGB, written by the recording step
+├── depth_maps/depth_000000.png ...   depth in millimetres (uint16), aligned to RGB
 └── objects/
-    ├── stl/
-    │   ├── Pliers.stl
-    │   └── Screwdriver.stl
-    └── textured/                 optional
+    ├── stl/Pliers.stl          CAD model (you provide this)
+    └── textured/               optional textured model
         ├── Pliers.obj
         ├── Pliers.mtl
         └── Pliers.png
 ```
 
-RGB and depth files are paired by numeric frame ID. Depth PNGs must be aligned
-to RGB and contain metric depth in millimetres (`uint16`). STL files are only
-required for the known-object SAM-6D workflow.
+RGB and depth files are paired by numeric frame ID. STL files are required for
+the known-object SAM-6D workflow; their file names become the object names. If a
+complete textured OBJ exists, it is used for the template rendering.
+
+The main outputs, created by the steps below:
+
+```text
+data/0000/
+├── reconstruction/             sparse model, metric dense cloud, camera poses
+├── sam6d_sequences/<object>/   per-frame pose candidates and <object>_world_pose.json
+├── sam6d_scene/                annotations.json, instance masks, overlays, video
+└── publishing/                 file inventory and task-specific Parquet tables
+```
 
 ## 1. Camera calibration
 
-Capture ChArUco views and estimate RGB intrinsics:
+The framework creates the calibration itself, so it is not a required input. Do it
+**once per camera and RGB resolution**; the result is stored in
+`calibration/cameras/<camera>_<date>/camera.json` and reused afterwards. If you
+already have a calibration for the camera, you can skip this step and use it: copy
+its `camera.json` into the dataset folder (`data/0000/camera.json`), or activate it
+in the interface (**Capture** tab, *Use selected calibration*).
+
+Capture ChArUco views and estimate the RGB intrinsics:
 
 ```bash
 conda activate label-factory
@@ -132,7 +105,7 @@ calibrations or activate a previous calibration. Activating one copies its
 `camera.json` into the current dataset, which keeps reconstruction and SAM-6D
 independent of the calibration-library layout.
 
-## 2. Record an aligned RealSense RGB-D sequence
+## 2. Record an aligned RGB-D sequence
 
 ```bash
 conda activate label-factory
@@ -143,7 +116,7 @@ python scripts/record_realsense_rgbd.py \
   --fps 30
 ```
 
-The requested stream combination must be supported by the connected camera. If
+Any camera supported by the RealSense SDK (`pyrealsense2`) can be used. The requested stream combination must be supported by the connected camera. If
 `Couldn't resolve requests` occurs, lower the resolution or FPS. Keep enough
 texture, avoid motion blur, and observe every object from several angles.
 
@@ -335,109 +308,21 @@ The UI exposes the same action and plays
 ## 6. Review and publish to Hugging Face
 
 The **Review & publish** tab provides visual review evidence, a technical file
-inventory, and a guarded publication workflow. A dataset cannot be uploaded
-until:
+inventory and a guarded upload. A dataset cannot be uploaded until
 
-1. The technical inventory confirms that required files are present.
-2. A person uses the provided reconstruction, RANSAC, RGB/depth/mask, and video
-   visualizations to review the result.
-3. A valid `owner/dataset-name` repository ID and write token are provided.
+1. the technical inventory confirms that the required files are present,
+2. a person has reviewed the reconstruction, the pose-fitting plots, the
+   RGB/depth/mask frames and the overlay video, and
+3. a valid `owner/dataset-name` repository ID and a write token are provided.
 
-For organization repositories, the token owner must have direct write access
-to the dataset repository. If the organization only permits contributions via
-review, select **Pull request** as the upload method. A Hugging Face `403`
-response means repository authorization failed; it is unrelated to the local
-dataset inventory.
+Human review is intentionally not a checkbox: the person inspects the
+visualizations directly. The upload always creates a **pull request** on the
+repository, so the files and the generated dataset card can be inspected on
+Hugging Face before merging. A Hugging Face `403` response means that the token
+has no write access to the repository; it is unrelated to the local inventory.
 
-The fixed acknowledgement is always visible in the left sidebar. It cannot be
-edited through the UI and is never copied into an uploaded dataset or dataset
-card. Human review is intentionally not represented by checkboxes; the person
-performs the review directly using the visualizations.
-
-The curated upload includes RGB/depth frames, calibration, the metric cloud and
-camera poses, STL files, per-frame and final world object poses, annotations,
-raw segmentations, instance-mask images, annotation-overlay images, RANSAC
-visualizations, the overlay video, and a generated dataset card. It excludes acknowledgements, the local technical
-inventory, COLMAP databases, PatchMatch
-caches, rendered templates, and inference intermediates.
-
-Each configured dataset is uploaded below its zero-padded ID. This prevents a
-later capture from replacing files belonging to an earlier capture:
-
-```text
-owner/repository
-├── 0001/
-│   ├── images/
-│   ├── depth_maps/
-│   ├── reconstruction/
-│   ├── sam6d_scene/
-│   ├── sam6d_sequences/
-│   └── data/
-│       ├── depth_estimation/*.parquet
-│       ├── instance_segmentation/*.parquet
-│       └── object_pose_estimation/
-│           ├── train-*.parquet
-│           ├── validation-*.parquet
-│           ├── test-*.parquet
-│           └── models.parquet
-├── 0002/
-│   └── ...
-└── README.md
-```
-
-The training tasks and normalized pose-model table are Hugging Face dataset configurations, rather than Git
-branches. This keeps shared files and task tables on the same reviewed revision,
-works with direct and pull-request uploads, and is directly selectable by
-training code:
-
-```python
-from datasets import load_dataset
-
-depth = load_dataset("owner/repository", "depth_estimation")
-instances = load_dataset("owner/repository", "instance_segmentation")
-poses = load_dataset("owner/repository", "object_pose_estimation")
-models = load_dataset("owner/repository", "object_pose_models")
-
-train = poses["train"]
-validation = poses["validation"]
-test = poses["test"]
-```
-
-The Parquet rows embed the required PNG bytes using Hugging Face `Image`
-features, so RGB, depth, and masks render in the Hub dataset viewer. They also contain frame IDs,
-camera intrinsics, units, masks, boxes, instance identities, camera transforms,
-and object transforms as appropriate for each task.
-
-Pose rows contain `object_model_keys`. The `object_pose_models` configuration
-stores each referenced STL once per numbered dataset, together with its file
-name, SHA-256 digest, byte size, model scale and binary payload. This avoids
-duplicating multi-megabyte meshes in every frame row while keeping them directly
-available to training code.
-
-All numbered captures are loaded automatically. To train with several selected
-captures, filter the `dataset_id` column:
-
-```python
-from datasets import load_dataset
-
-poses = load_dataset("owner/repository", "object_pose_estimation")
-selected_ids = set(["0000", "0001", "0004"])
-for split_name in poses:
-    poses[split_name] = poses[split_name].filter(
-        lambda row: row["dataset_id"] in selected_ids
-    )
-```
-
-The generated Hugging Face card also contains complete examples for decoding
-RGB, metric depth and instance-mask PNG payloads, reading boxes and annotation
-JSON, and reshaping camera/object transformations into 4×4 matrices.
-
-Training and validation ratios and the deterministic split seed are configured
-in the UI; the remaining fraction becomes the test split. Assignment hashes the
-dataset ID, frame ID, and seed, so uploading a new numbered dataset appends new
-samples without moving existing samples between splits. The generated dataset
-card declares all three configurations and all three splits using wildcard
-paths across the numbered dataset directories.
+The format of the uploaded dataset (configurations, repository layout, splits)
+is described in [`DATASETS.md`](DATASETS.md).
 
 The technical inventory can also be generated from the command line. It checks
 file presence and consistency; it is not a substitute for human validation:
@@ -511,18 +396,6 @@ results report only the time of the work that was actually repeated. The script
 `scripts/cleanup_dataset_intermediates.py` removes reproducible intermediates
 (including the shared SAM cache) so that a scene can be timed again from scratch.
 
-## Important limitations
-
-- Every object must have a known STL model and rendered SAM-6D templates.
-- RGB/depth misalignment, incorrect intrinsics, missing viewpoints, and poor
-  reconstruction poses propagate into the estimated world-coordinate poses.
-- SAM-6D may return several candidates or only a partial mask. Multi-frame
-  RANSAC rejects inconsistent estimates but cannot recover an object that is
-  never detected reliably.
-- Multiple identical objects require distinct position clusters. Their CAD
-  symmetries are handled during orientation consensus when symmetry detection
-  is enabled.
-
 ## Troubleshooting
 
 ### CUDA out of memory
@@ -546,7 +419,7 @@ and the dedicated `sam6d` environment for SAM-6D inference.
 ### RealSense `Couldn't resolve requests`
 
 The RGB/depth resolution and FPS combination is unsupported. Reduce FPS or
-choose a stream mode supported by the D455.
+choose a stream mode supported by your camera.
 
 ### BlenderProc `StructRNA ... Material has been removed`
 
@@ -564,7 +437,7 @@ frames should be skipped instead of becoming pose estimates.
 
 - The YAML selects the intended dataset.
 - RGB/depth frame IDs match.
-- `camera.json` contains correct intrinsics and millimetre depth units.
+- `camera.json` exists (written by the calibration or recording step, or supplied for an imported sequence), with correct intrinsics and millimetre depth units.
 - `mvs_filtered_metric.ply` and `camera_poses_metric.json` exist.
 - Every STL filename matches its intended object name.
 - SAM-6D templates were generated with the correct CAD scale.

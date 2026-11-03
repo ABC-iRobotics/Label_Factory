@@ -50,9 +50,8 @@ footer{padding:24px 20px 48px;color:var(--muted);font-size:.88rem;border-top:1px
   <sup>2</sup> National Key Laboratory of Modeling and Simulation for Complex Systems, Harbin Institute of Technology</p>
   <div class="buttons">
     <a class="btn primary" href="https://github.com/ABC-iRobotics/Label_Factory">Code</a>
-    <a class="btn" href="https://huggingface.co/KarolyArmin">Datasets</a>
+    <a class="btn" href="https://huggingface.co/ABC-iRobotics">Datasets</a>
     <a class="btn" href="#citation">BibTeX</a>
-    <!-- TODO: add a "Paper" button with the DOI / arXiv link after publication -->
   </div>
 </header>
 
@@ -99,9 +98,9 @@ footer{padding:24px 20px 48px;color:var(--muted);font-size:.88rem;border-top:1px
 
 <section id="datasets">
   <h2>Datasets</h2>
-  <p>The datasets recorded with the framework, hand tools and labware items with ten scenes each, are published on the <a href="https://huggingface.co/datasets/KarolyArmin/Hand_tools">Hugging Face</a> <!-- TODO: link the labware dataset -->. Each provides the configurations <code>depth_estimation</code>, <code>instance_segmentation</code>, <code>object_pose_estimation</code> and <code>object_pose_models</code>.</p>
+  <p>The datasets recorded with the framework, hand tools and labware items with ten scenes each, are published on Hugging Face: <a href="https://huggingface.co/datasets/ABC-iRobotics/Hand_Tools">Hand tools</a> and <a href="https://huggingface.co/datasets/ABC-iRobotics/LabWare_Items">Labware items</a>. Each provides the configurations <code>depth_estimation</code>, <code>instance_segmentation</code>, <code>object_pose_estimation</code> and <code>object_pose_models</code>.</p>
 <pre><code>from datasets import load_dataset
-poses = load_dataset("KarolyArmin/Hand_tools", "object_pose_estimation")</code></pre>
+poses = load_dataset("ABC-iRobotics/Hand_Tools", "object_pose_estimation")</code></pre>
 </section>
 
 <section id="start">
@@ -111,7 +110,7 @@ cd Label_Factory
 # place the SAM-6D checkpoints in checkpoints/ (see the README)
 docker compose build
 docker compose up        # user interface on http://localhost:8501</code></pre>
-  <p>Installation, the command-line workflow and the evaluation scripts are described in the <a href="https://github.com/ABC-iRobotics/Label_Factory#readme">README</a> and the <a href="https://github.com/ABC-iRobotics/Label_Factory/blob/main/docs/USAGE.md">usage guide</a>.</p>
+  <p>Installation, the command-line workflow and the evaluation scripts are described in the <a href="https://github.com/ABC-iRobotics/Label_Factory#readme">README</a> and the <a href="https://github.com/ABC-iRobotics/Label_Factory/blob/main/docs/README.md">documentation</a> (<a href="https://github.com/ABC-iRobotics/Label_Factory/blob/main/docs/INSTALL_DOCKER.md">installation</a>, <a href="https://github.com/ABC-iRobotics/Label_Factory/blob/main/docs/UI_GUIDE.md">user interface guide</a>, <a href="https://github.com/ABC-iRobotics/Label_Factory/blob/main/docs/USAGE.md">command line</a>).</p>
 </section>
 
 <section id="citation">

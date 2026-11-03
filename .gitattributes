@@ -1,0 +1,2 @@
+# keep the exported result tables out of the language statistics
+evaluation/**/*.tex linguist-documentation
