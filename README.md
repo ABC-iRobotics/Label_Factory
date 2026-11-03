@@ -111,15 +111,17 @@ are multi-view methods on the same benchmark. They work on RGB images (AlignPose
 and CosyPose on top of single-view pose candidates), whereas Label Factory uses
 RGB-D, the CAD models and no training on the benchmark. The numbers of views and
 the evaluation protocols differ, so the table shows the accuracy level rather
-than a like-for-like ranking. The table lists the BOP average recall (AR) that the AlignPose paper reports;
-it is the same metric as in the table above.
+than a like-for-like ranking. The BOP average recall (AR) and the ADD-S AUC are the metrics of the table above;
+each source reports one of them.
 
-| Method | Input | BOP AR | Source |
-|---|---|---|---|
-| **Label Factory (ours)** | RGB-D sequence, all frames | **88.5** | this work |
-| AlignPose (multi-view, on FoundPose candidates) | RGB, multi-view | 83.9 | [arXiv 2512.20538](https://arxiv.org/abs/2512.20538) |
-| CosyPose multi-view (on FoundPose candidates) | RGB, multi-view | 79.2 | [arXiv 2512.20538](https://arxiv.org/abs/2512.20538) |
-| CosyPose (5 views) | RGB, multi-view | – | [arXiv 2008.08465](https://arxiv.org/abs/2008.08465) |
+| Method | Input | BOP AR | ADD-S AUC | Source |
+|---|---|---|---|---|
+| **Label Factory (ours)** | RGB-D sequence, all frames | **88.5** | **97.0** | this work |
+| AlignPose (multi-view, on FoundPose candidates) | RGB, multi-view | 83.9 | – | [arXiv 2512.20538](https://arxiv.org/abs/2512.20538) |
+| CosyPose multi-view (on FoundPose candidates) | RGB, multi-view | 79.2 | – | [arXiv 2512.20538](https://arxiv.org/abs/2512.20538) |
+| CosyPose (5 views) | RGB, multi-view | – | 93.4 | [arXiv 2008.08465](https://arxiv.org/abs/2008.08465) |
+
+A dash means that the source does not report the value.
 
 The AlignPose paper also applies the multi-view step to other single-view
 candidates (GigaPose, MegaPose, Co-op) with AR between 80.0 and 83.8.
